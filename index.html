@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Κτηνοτρόφος ΤΝ</title>
+<meta name="theme-color" content="#a61e22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Κτηνοτρόφος">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="leaflet.min.css">
+<script src="leaflet.min.js"></script>
+<script src="animals.js"></script>
+<style>
+  :root{
+    --bg:#f6f1ec; --panel:#ffffff; --ink:#221a17; --muted:#6b5d57; --line:#e2d6cc;
+    --accent:#b3261e; --accent2:#2b6cb0; --ok:#0e7c96; --warn:#b7791f; --bad:#c53030; --gold:#c9951b;
+    --shadow:0 1px 3px rgba(0,0,0,.08),0 6px 18px rgba(0,0,0,.06); --radius:12px;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --bg:#141012; --panel:#1f191b; --ink:#f2ebe8; --muted:#a8999a; --line:#352b2d;
+    --accent:#e4222f; --accent2:#5b9bd8; --ok:#34b3cf; --warn:#e0a53a; --bad:#ff5a5f; --gold:#e8b53a;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+  }}
+  :root[data-theme="dark"]{
+    --bg:#141012; --panel:#1f191b; --ink:#f2ebe8; --muted:#a8999a; --line:#352b2d;
+    --accent:#e4222f; --accent2:#5b9bd8; --ok:#34b3cf; --warn:#e0a53a; --bad:#ff5a5f; --gold:#e8b53a;
+    --shadow:0 1px 3px rgba(0,0,0,.4),0 6px 18px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+  header{background:linear-gradient(135deg,#7a1418,#c62828);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;box-shadow:var(--shadow)}
+  header .logo{font-size:26px}
+  header h1{font-size:18px;margin:0;font-weight:800}
+  header .sub{font-size:12px;opacity:.92}
+  header .spacer{flex:1}
+  header .status{font-size:12px;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:20px;font-weight:600;color:#fff}
+  header .status.off{background:rgba(0,0,0,.35)}
+  .tabs{display:flex;gap:4px;background:var(--panel);padding:6px 8px;position:sticky;top:56px;z-index:19;border-bottom:1px solid var(--line);overflow-x:auto}
+  .tabs button{flex:0 0 auto;background:transparent;border:none;color:var(--muted);font-size:14px;font-weight:600;padding:8px 14px;border-radius:8px;cursor:pointer;white-space:nowrap}
+  .tabs button.active{background:var(--accent);color:#fff}
+  .wrap{max-width:1400px;margin:0 auto;padding:12px}
+  .grid{display:grid;grid-template-columns:380px 1fr;gap:12px;align-items:start}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  @media(max-width:1050px){.grid,.grid2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
+  .card h2{font-size:13px;margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap}
+  .card h2 .r{display:flex;gap:6px;align-items:center}
+  .row{display:flex;gap:8px;margin-bottom:10px}
+  .row>*{flex:1;min-width:0}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px;font-weight:600}
+  input,select,textarea{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:14px;font-family:inherit}
+  textarea{resize:vertical;min-height:52px}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);border-color:transparent}
+  .hint{font-size:12px;color:var(--muted);margin:-2px 0 10px}
+  .kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin-bottom:10px}
+  .kpi .box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .kpi .box .v{font-size:20px;font-weight:800;line-height:1.1}
+  .kpi .box .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tblwrap{overflow-x:auto}
+  .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700;white-space:nowrap}
+  .badge.ok{background:rgba(14,124,150,.16);color:var(--ok)}
+  .badge.warn{background:rgba(183,121,31,.16);color:var(--warn)}
+  .badge.bad{background:rgba(197,48,48,.16);color:var(--bad)}
+  .badge.info{background:rgba(43,108,176,.14);color:var(--accent2)}
+  .badge.solid{background:var(--bad);color:#fff}
+  .note{font-size:12.5px;background:var(--bg);border-left:3px solid var(--accent);padding:8px 10px;border-radius:6px;margin:8px 0;color:var(--ink)}
+  .note.warn{border-left-color:var(--warn)} .note.bad{border-left-color:var(--bad)} .note.info{border-left-color:var(--accent2)} .note.ok{border-left-color:var(--ok)}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .btn{padding:9px 14px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer;font-size:14px}
+  .btn:hover{filter:brightness(1.07)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+  .btn.mini{padding:5px 9px;font-size:12px}
+  .btn.bad{background:var(--bad)}
+  .tabpane{display:none}
+  .tabpane.active{display:block}
+  .inline{display:flex;align-items:center;gap:8px}
+  .small{font-size:12px;color:var(--muted)}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:6px;background:var(--bg);border:1px solid var(--line);margin:2px 3px 2px 0;font-weight:600}
+  .empty{text-align:center;color:var(--muted);padding:24px;font-size:13px}
+  .listitem{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--bg)}
+  .listitem .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .listitem .nm{font-weight:700;font-size:15px}
+  .listitem .meta{font-size:12px;color:var(--muted);margin-top:2px}
+  .listitem.sel{outline:2px solid var(--accent)}
+  .herdchip{display:flex;justify-content:space-between;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:6px 8px;margin-top:6px;font-size:13px;flex-wrap:wrap}
+  .weatherrow{display:grid;gap:4px;overflow-x:auto}
+  .wday{text-align:center;font-size:11px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 3px;min-width:52px}
+  .wday .d{font-weight:700;color:var(--muted)} .wday .t{font-weight:800;font-size:13px} .wday .p{color:var(--accent2)}
+  .wday.l1{border-color:var(--warn)} .wday.l2{border-color:var(--bad)} .wday.l3{border-color:var(--bad);background:rgba(197,48,48,.14)}
+  #map{height:300px;border-radius:10px;border:1px solid var(--line);margin:6px 0;z-index:1}
+  .maptools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .leaflet-container{font:inherit}
+  .prog{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--bg)}
+  .prog .h{font-weight:700;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+  .prog .h .lft{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .prog .why{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .prog.p0{border-left:4px solid var(--bad)} .prog.p1{border-left:4px solid var(--warn)} .prog.p2{border-left:4px solid var(--accent2)} .prog.p3{border-left:4px solid var(--ok)}
+  .prog.done{opacity:.6}
+  .meter{height:10px;border-radius:6px;background:var(--bg);border:1px solid var(--line);overflow:hidden;margin:4px 0 8px}
+  .meter>i{display:block;height:100%;background:var(--accent)}
+  .meter.ok>i{background:var(--ok)} .meter.warn>i{background:var(--warn)}
+  .symgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin:8px 0}
+  .symgrid label{display:flex;gap:7px;align-items:center;font-size:13px;color:var(--ink);font-weight:500;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer;margin:0}
+  .symgrid input{width:auto;flex:0 0 auto}
+  .symgrid label.on{border-color:var(--accent);background:rgba(228,34,47,.08)}
+  .ration-row{display:grid;grid-template-columns:1fr 90px 34px;gap:6px;margin-bottom:6px}
+  #dropzone{border:2px dashed var(--line);border-radius:12px;padding:22px;text-align:center;color:var(--muted);cursor:pointer;background:var(--bg)}
+  #dropzone.drag{border-color:var(--accent);color:var(--accent)}
+  #famCanvas{max-width:100%;border-radius:10px;border:1px solid var(--line);cursor:crosshair;display:block;margin-top:10px}
+  .famscale{display:flex;gap:4px;margin:8px 0}
+  .famscale div{flex:1;text-align:center;border-radius:6px;padding:8px 2px;font-weight:800;color:#fff;font-size:13px;border:3px solid transparent}
+  .famscale div.on{border-color:var(--ink);transform:scale(1.06)}
+  .swatch{display:inline-block;width:38px;height:38px;border-radius:8px;border:1px solid var(--line);vertical-align:middle}
+  #installBtn{display:none}
+  /* Εγκυκλοπαίδεια */
+  .enc-cats{display:flex;gap:6px;flex-wrap:wrap}
+  .enc-cats button{background:var(--bg);border:1px solid var(--line);color:var(--ink);font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:20px;cursor:pointer}
+  .enc-cats button.active{background:var(--accent);color:#fff;border-color:transparent}
+  .enc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:10px}
+  .pcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;cursor:pointer;transition:transform .12s,box-shadow .12s;display:flex;flex-direction:column;gap:4px}
+  .pcard:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--accent)}
+  .pcard.species{border-top:4px solid var(--accent)}
+  .pcard .pthumb{height:100px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:8px;overflow:hidden;margin-bottom:2px}
+  .pcard .pe{font-size:42px;line-height:1}
+  .pimg{width:100%;height:100%;object-fit:cover;display:block}
+  .pcard .pn{font-weight:700;font-size:14.5px}
+  .pcard .psci{font-size:11px;color:var(--muted)}
+  .ptag{font-size:10px;padding:2px 6px;border-radius:5px;background:var(--bg);border:1px solid var(--line);color:var(--muted);font-weight:600;display:inline-block;margin:2px 2px 0 0}
+  .pmodal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:30px 12px;overflow-y:auto}
+  .pmodal .pbox{background:var(--panel);border-radius:14px;max-width:760px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+  .pmodal .phead{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .pmodal .phead .pe{font-size:44px}
+  .pmodal .phead h3{margin:0;font-size:20px}
+  .pmodal .phead .x{margin-left:auto;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;font-size:18px;width:36px;height:36px;cursor:pointer}
+  .pmodal .pmimg{width:72px;height:72px;border-radius:10px;object-fit:cover}
+  .pmodal .pbody{padding:14px 16px}
+  .pmodal .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+  .pmodal .pgrid div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+  .pmodal .pgrid b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+  .pcredit{font-size:11px;color:var(--muted);text-align:center;padding:6px}
+  @media(max-width:640px){
+    .wrap{padding:8px} header h1{font-size:16px} header .sub{display:none}
+    .card{padding:11px} #map{height:240px}
+    .kpi{grid-template-columns:1fr 1fr} .tabs button{font-size:13px;padding:7px 10px}
+    .row{flex-wrap:wrap} .row>*{flex:1 1 140px}
+  }
+  @media print{header,.tabs,.no-print,.btnrow,.maptools,#map{display:none!important}.grid,.grid2{grid-template-columns:1fr}.card{break-inside:avoid;box-shadow:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🐄</div>
+  <div><h1>Κτηνοτρόφος ΤΝ</h1><div class="sub">Έξυπνη διαχείριση κοπαδιού — Βοοειδή · Αιγοπρόβατα · Χοίροι · Πουλερικά · Κουνέλια · Μέλισσες</div></div>
+  <div class="spacer"></div>
+  <button class="status" id="themeBtn" style="cursor:pointer;border:none" title="Θέμα">🌓</button>
+  <button class="status" id="installBtn" style="cursor:pointer;border:none">📲 Εγκατάσταση</button>
+  <div class="status" id="netStatus">…</div>
+</header>
+
+<div class="tabs" id="tabs">
+  <button data-tab="dash" class="active">🧭 Σύμβουλος ΤΝ</button>
+  <button data-tab="units">🏡 Μονάδες &amp; Κοπάδια</button>
+  <button data-tab="animals">🏷️ Μητρώο ζώων</button>
+  <button data-tab="agenda">📒 Ημερολόγιο εργασιών</button>
+  <button data-tab="encyclopedia">📚 Εγκυκλοπαίδεια</button>
+  <button data-tab="program">🗓️ Πρόγραμμα ΤΝ</button>
+  <button data-tab="repro">🤰 Αναπαραγωγή &amp; Παραγωγή</button>
+  <button data-tab="health">🩺 Υγεία, Καύσωνας &amp; Διατροφή</button>
+  <button data-tab="vision">📷 Ανάλυση φωτογραφίας</button>
+  <button data-tab="data">💾 Δεδομένα</button>
+</div>
+
+<div class="wrap">
+
+<!-- ============================ DASHBOARD ============================ -->
+<div class="tabpane active" id="tab-dash">
+  <div class="card">
+    <h2>🧭 Σύμβουλος ΤΝ <span class="r"><button class="btn sec mini" id="refreshAll">🔄 Ανανέωση καιρού &amp; μοντέλων</button></span></h2>
+    <div class="hint">Ο Σύμβουλος συνδυάζει τα δεδομένα σου (μονάδες, κοπάδια, ζώα, ημερολόγιο, αναπαραγωγή, αποθέματα) με ζωοτεχνικά μοντέλα (THI θερμικού στρες, κύηση, παραγωγή, ανάγκες τροφής/νερού) και τον καιρό, και παράγει προτεραιοποιημένες ενέργειες. Δουλεύει και offline.</div>
+    <div class="kpi" id="dashKpi"></div>
+  </div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>⚠️ Ενέργειες προτεραιότητας</h2>
+        <div id="dashAdvice"><div class="empty">Πρόσθεσε μονάδα &amp; κοπάδι για να δεις προτάσεις.</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h2>🌦️ Καιρός &amp; θερμικό στρες (μονάδα)</h2>
+        <select id="dashUnit"></select>
+        <div id="dashWeather" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h2>🌡️ Χειροκίνητος καιρός</h2>
+        <div class="hint">Όταν δεν φορτώνει αυτόματα ο καιρός (offline/κινητό), δώσε τρέχουσες τιμές για να τρέξουν τα μοντέλα θερμικού στρες &amp; νερού.</div>
+        <label>Μονάδα</label><select id="mwUnit"></select>
+        <div class="row">
+          <div><label>Μέγιστη °C</label><input id="mwTmax" type="number" step="0.5" placeholder="π.χ. 36"></div>
+          <div><label>Ελάχιστη °C</label><input id="mwTmin" type="number" step="0.5" placeholder="π.χ. 22"></div>
+          <div><label>Υγρασία %</label><input id="mwRh" type="number" step="1" placeholder="π.χ. 45"></div>
+        </div>
+        <div class="btnrow"><button class="btn" id="mwSave">💾 Εφαρμογή καιρού</button></div>
+      </div>
+      <div class="card">
+        <h2>💰 Οικονομικά (τρέχον έτος)</h2>
+        <div id="dashCost"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ UNITS & HERDS ============================ -->
+<div class="tabpane" id="tab-units">
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2 id="unitFormTitle">➕ Νέα μονάδα (στάβλος / στάνη / βοσκότοπος)</h2>
+      <label>Ονομασία *</label>
+      <input id="uName" placeholder="π.χ. Στάνη Ελασσόνας">
+      <div class="row">
+        <div><label>Τύπος</label>
+          <select id="uType"><option>Στάβλος / Σταβλισμός</option><option>Στάνη / Μαντρί</option><option>Βοσκότοπος</option><option>Πτηνοτροφείο / Κοτέτσι</option><option>Χοιροστάσιο</option><option>Κουνελοτροφείο</option><option>Μελισσοκομείο</option><option>Άλλο</option></select>
+        </div>
+        <div><label>Έκταση (στρέμματα)</label><input id="uArea" type="number" step="0.1" placeholder="π.χ. 5"></div>
+      </div>
+      <div class="row">
+        <div><label>Κωδ. εκμετάλλευσης (ΚΕ)</label><input id="uCode" placeholder="π.χ. GR…"></div>
+        <div><label>Υψόμετρο (m)</label><input id="uAlt" type="number" step="1" placeholder="προαιρετικό"></div>
+      </div>
+      <div class="row">
+        <div><label>Γεωγρ. πλάτος (lat)</label><input id="uLat" type="number" step="0.0001" placeholder="π.χ. 39.89"></div>
+        <div><label>Γεωγρ. μήκος (lon)</label><input id="uLon" type="number" step="0.0001" placeholder="π.χ. 22.19"></div>
+      </div>
+      <label style="margin-top:8px">🗺️ Χάρτης — καρφίτσωσε θέση ή σχεδίασε το όριο</label>
+      <div class="maptools">
+        <button class="btn sec mini" id="uGeo">📍 Τρέχουσα θέση (GPS)</button>
+        <button class="btn sec mini" id="mPin">📌 Καρφίτσα</button>
+        <button class="btn sec mini" id="mDraw">✏️ Σχεδίαση ορίου</button>
+        <button class="btn sec mini" id="mUndo">↩️ Αναίρεση</button>
+        <button class="btn sec mini" id="mClear">🗑️ Καθαρισμός</button>
+      </div>
+      <div id="map"></div>
+      <div class="hint" id="mapHint">«Σχεδίαση ορίου» και κλικ στις γωνίες του βοσκοτόπου — υπολογίζεται αυτόματα η έκταση. «Καρφίτσα» για απλή θέση.</div>
+      <label style="margin-top:8px">Σημειώσεις</label>
+      <textarea id="uNotes" placeholder="Νερό, πρόσβαση, σκίαση, εξοπλισμός αμελκτικού…"></textarea>
+      <div class="btnrow">
+        <button class="btn" id="uSave">💾 Αποθήκευση</button>
+        <button class="btn sec" id="uCancel" style="display:none">Άκυρο</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 id="herdFormTitle">🐑 Προσθήκη κοπαδιού / ομάδας ζώων</h2>
+      <div class="hint" id="herdUnitHint">Επίλεξε πρώτα μονάδα από τη λίστα.</div>
+      <div class="row">
+        <div><label>Είδος ζώου</label><select id="hSp"></select></div>
+        <div><label>Φυλή</label><select id="hBreed"></select></div>
+      </div>
+      <label>Όνομα ομάδας (προαιρετικό)</label><input id="hName" placeholder="π.χ. Αρμεγόμενες, Αρνάδες, Κοτέτσι Α">
+      <div class="row">
+        <div><label id="hCountLbl">Σύνολο ζώων</label><input id="hCount" type="number" step="1" placeholder="π.χ. 250"></div>
+        <div><label id="hFemLbl">Ενήλικα θηλυκά</label><input id="hFem" type="number" step="1" placeholder="π.χ. 220"></div>
+        <div><label id="hMaleLbl">Αρσενικά αναπαρ.</label><input id="hMale" type="number" step="1" placeholder="π.χ. 7"></div>
+      </div>
+      <div class="row">
+        <div><label>Σύστημα εκτροφής</label><select id="hSys"><option>Εκτατικό (βοσκή)</option><option selected>Ημιεντατικό</option><option>Εντατικό (σταβλισμός)</option></select></div>
+        <div><label>Μέσο βάρος (kg)</label><input id="hBw" type="number" step="0.1" placeholder="αυτόματο"></div>
+      </div>
+      <div class="row">
+        <div id="hBmWrap"><label>Κύριος μήνας τοκετών</label><select id="hBm"></select></div>
+        <div id="hHatchWrap"><label id="hHatchLbl">Ημ. εκκόλαψης / εισαγωγής</label><input id="hHatch" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label id="hYieldLbl">Δική σου απόδοση/έτος</label><input id="hYield" type="number" step="0.1" placeholder="προαιρετικό"></div>
+        <div><label id="hPriceLbl">Τιμή πώλησης (€)</label><input id="hPrice" type="number" step="0.01" placeholder="π.χ. 1.40"></div>
+      </div>
+      <div class="hint" id="hSpHint"></div>
+      <div class="btnrow">
+        <button class="btn" id="hSave" disabled>💾 Προσθήκη κοπαδιού</button>
+        <button class="btn sec" id="hCancel" style="display:none">Άκυρο</button>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🏡 Οι μονάδες μου <span class="r"><span class="small" id="unitCount"></span></span></h2>
+      <div id="unitList"><div class="empty">Δεν υπάρχουν μονάδες ακόμη.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ ANIMAL REGISTRY ============================ -->
+<div class="tabpane" id="tab-animals">
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2 id="aFormTitle">🏷️ Νέο ζώο (ατομική καταγραφή)</h2>
+      <div class="hint">Για βοοειδή, άλογα, αναπαραγωγικά ζώα ή όποιο ζώο θες να παρακολουθείς ατομικά (ενώτιο/ηλεκτρονική σήμανση).</div>
+      <label>Κοπάδι *</label><select id="aHerd"></select>
+      <div class="row">
+        <div><label>Ενώτιο / Αρ. σήμανσης *</label><input id="aTag" placeholder="π.χ. GR0123456789"></div>
+        <div><label>Όνομα</label><input id="aName" placeholder="π.χ. Μαργαρίτα"></div>
+      </div>
+      <div class="row">
+        <div><label>Φύλο</label><select id="aSex"><option value="F">♀ Θηλυκό</option><option value="M">♂ Αρσενικό</option><option value="C">⚲ Ευνουχισμένο</option></select></div>
+        <div><label>Ημ. γέννησης</label><input id="aBirth" type="date"></div>
+      </div>
+      <div class="row">
+        <div><label>Φυλή</label><input id="aBreed" placeholder="π.χ. Holstein"></div>
+        <div><label>Μητέρα (ενώτιο)</label><input id="aMother" placeholder="προαιρετικό"></div>
+      </div>
+      <div class="row">
+        <div><label>Βάρος (kg)</label><input id="aWeight" type="number" step="0.1"></div>
+        <div><label>Κατάσταση</label><select id="aStatus"><option>Ενεργό</option><option>Έγκυο</option><option>Σε ξηρά περίοδο</option><option>Σε γαλακτοπαραγωγή</option><option>Σε πάχυνση</option><option>Πωλήθηκε</option><option>Θανατώθηκε</option><option>Νεκρό</option></select></div>
+      </div>
+      <label>Σημειώσεις</label><textarea id="aNotes" placeholder="Χαρακτηριστικά, ιστορικό υγείας, τοκετών…"></textarea>
+      <div class="btnrow">
+        <button class="btn" id="aSave">💾 Αποθήκευση ζώου</button>
+        <button class="btn sec" id="aCancel" style="display:none">Άκυρο</button>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🏷️ Μητρώο <span class="r"><span class="small" id="aCount"></span></span></h2>
+      <div class="row">
+        <input id="aSearch" placeholder="🔎 Αναζήτηση ενωτίου/ονόματος…">
+        <select id="aFilter"><option value="">Όλα τα κοπάδια</option></select>
+        <select id="aStFilter"><option value="active">Ενεργά</option><option value="">Όλα</option><option value="gone">Αποχωρήσαντα</option></select>
+      </div>
+      <div id="animalList"><div class="empty">Δεν έχουν καταχωρηθεί ζώα.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ AGENDA ============================ -->
+<div class="tabpane" id="tab-agenda">
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2 id="logFormTitle">📝 Νέα εργασία / εισροή / έσοδο</h2>
+      <label>Κοπάδι / Ζώο / Μονάδα</label>
+      <select id="lTarget"></select>
+      <div class="row">
+        <div><label>Ημερομηνία</label><input id="lDate" type="date"></div>
+        <div><label>Κατηγορία</label>
+          <select id="lCat">
+            <optgroup label="Υγεία"><option>Εμβολιασμός</option><option>Αποπαρασίτωση</option><option>Φαρμακευτική αγωγή</option><option>Κτηνίατρος</option><option>Αιμοληψία / έλεγχος</option></optgroup>
+            <optgroup label="Διατροφή & διαχείριση"><option>Ζωοτροφές</option><option>Βοσκή</option><option>Κούρεμα</option><option>Περιποίηση οπλών</option><option>Καθαρισμός / Απολύμανση</option><option>Ενέργεια / Νερό</option></optgroup>
+            <optgroup label="Αναπαραγωγή"><option>Οχεία / Σπερματέγχυση</option><option>Τοκετός / Εκκόλαψη</option><option>Απογαλακτισμός</option></optgroup>
+            <optgroup label="Παραγωγή & έσοδα"><option>Άμελξη / Γάλα</option><option>Αυγά</option><option>Μέλι / Τρύγος</option><option>Πώληση ζώων</option><option>Επιδότηση / Ενίσχυση</option></optgroup>
+            <optgroup label="Λοιπά"><option>Αγορά ζώων</option><option>Θάνατος / Απώλεια</option><option>Διοικητικά</option><option>Παρατήρηση</option><option>Άλλο</option></optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div><label>Σκεύασμα / Υλικό / Προϊόν</label><input id="lProduct" placeholder="π.χ. εμβόλιο κλωστηριδίων, τριφύλλι, γάλα"></div>
+        <div><label>Ποσότητα</label><input id="lQty" placeholder="π.χ. 2 ml/ζώο, 500 kg, 320 lt"></div>
+      </div>
+      <div class="row">
+        <div><label>Κόστος (€)</label><input id="lCost" type="number" step="0.01" placeholder="0"></div>
+        <div><label>Έσοδο (€)</label><input id="lIncome" type="number" step="0.01" placeholder="0"></div>
+      </div>
+      <div class="row" id="wdRow">
+        <div><label>Αναμονή γάλακτος/αυγών (ημ.)</label><input id="lWMilk" type="number" step="1" placeholder="0"></div>
+        <div><label>Αναμονή κρέατος (ημ.)</label><input id="lWMeat" type="number" step="1" placeholder="0"></div>
+      </div>
+      <label>Σημειώσεις</label>
+      <textarea id="lNotes" placeholder="Αριθμός ζώων, συνταγή κτηνιάτρου, παρτίδα…"></textarea>
+      <div class="btnrow">
+        <button class="btn" id="lSave">💾 Καταχώρηση</button>
+        <button class="btn sec" id="lCancel" style="display:none">Άκυρο</button>
+      </div>
+      <div class="note info" id="wdNote" style="display:none"></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>📒 Ημερολόγιο <span class="r">
+        <select id="agFilter" style="width:auto"><option value="">Όλα</option></select>
+        <select id="agCat" style="width:auto"><option value="">Όλες οι κατηγορίες</option></select>
+      </span></h2>
+      <div id="logSum"></div>
+      <div id="logList"><div class="empty">Καμία καταχώρηση ακόμη.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ ENCYCLOPEDIA ============================ -->
+<div class="tabpane" id="tab-encyclopedia">
+  <div class="card">
+    <h2>📚 Εγκυκλοπαίδεια ζώων &amp; φυλών <span class="r"><span class="small" id="encCount"></span></span></h2>
+    <div class="hint">Όλα τα είδη που εκτρέφει ένας κτηνοτρόφος στην Ελλάδα, με ελληνικές &amp; ξένες φυλές. Πάτησε μια κάρτα για κύηση, βάρος, τροφή/νερό, παραγωγή, ετήσιο πρόγραμμα φροντίδων &amp; ασθένειες.</div>
+    <input id="encSearch" placeholder="🔎 Αναζήτηση είδους ή φυλής…" style="margin-bottom:10px">
+    <div class="enc-cats" id="encCats"></div>
+    <div class="enc-cats" id="encSps" style="margin-top:6px"></div>
+    <label class="inline" style="margin-top:10px;cursor:pointer;font-weight:600;color:var(--ink)"><input type="checkbox" id="encPhotos" style="width:auto;flex:0"> <span>📷 Εμφάνιση φωτογραφιών (Wikipedia / Wikimedia Commons)</span></label>
+    <div class="hint" style="margin:2px 0 0">Οι φωτογραφίες φορτώνουν <b>online</b> μόνο όταν το ενεργοποιήσεις (opt-in) — αλλιώς δεν γίνεται καμία εξωτερική σύνδεση.</div>
+  </div>
+  <div class="enc-grid" id="encGrid"></div>
+  <div id="encEmpty" class="empty" style="display:none">Δεν βρέθηκε αποτέλεσμα.</div>
+</div>
+
+<!-- ============================ AUTO PROGRAM ============================ -->
+<div class="tabpane" id="tab-program">
+  <div class="card">
+    <h2>🗓️ Αυτόματο πρόγραμμα φροντίδων <span class="r"><button class="btn sec mini" id="progFetch">🌦️ Ανανέωση καιρού &amp; συστάσεων</button></span></h2>
+    <div class="hint">Παράγεται αυτόματα ανά κοπάδι από: το ετήσιο ημερολόγιο του είδους (εμβολιασμοί, αποπαρασιτώσεις, κούρεμα, διοικητικά), τον κύριο μήνα τοκετών &amp; τις καταγεγραμμένες οχείες (ξήρανση, εμβόλιο πριν τον τοκετό, flushing), τον καιρό (θερμικό στρες/παγετός) και το απόθεμα ζωοτροφών. Κάθε σύσταση περνά με ένα κλικ στο Ημερολόγιο.</div>
+    <label>Κοπάδι</label>
+    <select id="progHerd"></select>
+    <div class="btnrow"><button class="btn sec mini" id="progAll">📋 Πρόγραμμα για όλα τα κοπάδια</button></div>
+  </div>
+  <div id="progBox"><div class="empty">Επίλεξε κοπάδι για αυτόματες συστάσεις.</div></div>
+</div>
+
+<!-- ============================ REPRODUCTION & PRODUCTION ============================ -->
+<div class="tabpane" id="tab-repro">
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>🤰 Υπολογιστής κύησης / επώασης</h2>
+      <label>Κοπάδι</label><select id="rHerd"></select>
+      <label style="margin-top:8px">Ζώο (προαιρετικό)</label><select id="rAnimal"><option value="">— ομαδική καταγραφή —</option></select>
+      <div class="row" style="margin-top:8px">
+        <div><label id="rDateLbl">Ημ. οχείας / σπερματέγχυσης</label><input id="rDate" type="date"></div>
+        <div><label id="rCountLbl">Αρ. ζώων / αυγών</label><input id="rCount" type="number" step="1" value="1"></div>
+      </div>
+      <label>Σημειώσεις (αρσενικό/σπέρμα/παρτίδα)</label><input id="rNotes" placeholder="π.χ. κριάρι Νο 3, σπέρμα Holstein XYZ">
+      <div id="rCalc" style="margin-top:10px"></div>
+      <div class="btnrow"><button class="btn" id="rSave">💾 Καταχώρηση αναπαραγωγικού γεγονότος</button></div>
+    </div>
+    <div class="card">
+      <h2>🍼 Επερχόμενοι τοκετοί / εκκολάψεις</h2>
+      <div id="birthList"><div class="empty">Καμία καταχώρηση.</div></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>📈 Πρόβλεψη παραγωγής &amp; εσόδων (ανά κοπάδι)</h2>
+      <div class="hint">Βάσει είδους, φυλής, αριθμού θηλυκών, ηλικίας (πουλερικά), δικής σου απόδοσης (αν τη δώσεις) και τιμής πώλησης. Ενδεικτικές τιμές — βαθμονόμησε με τα δικά σου στοιχεία.</div>
+      <div id="prodBox"><div class="empty">Πρόσθεσε κοπάδια.</div></div>
+    </div>
+    <div class="card">
+      <h2>📊 Δείκτες αναπαραγωγής (από ημερολόγιο)</h2>
+      <div id="reproKpi"><div class="empty">—</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ HEALTH, HEAT & FEED ============================ -->
+<div class="tabpane" id="tab-health">
+<div class="grid2">
+  <div>
+    <div class="card">
+      <h2>🌡️ Θερμικό στρες &amp; νερό <span class="r"><button class="btn sec mini" id="hsFetch">🌦️ Ανανέωση</button></span></h2>
+      <label>Κοπάδι</label><select id="hsHerd"></select>
+      <div id="heatBox" style="margin-top:10px"><div class="empty">Επίλεξε κοπάδι.</div></div>
+    </div>
+    <div class="card">
+      <h2>🌾 Ανάγκες τροφής &amp; απόθεμα ζωοτροφών</h2>
+      <div id="feedNeed"></div>
+      <div class="row" style="margin-top:10px">
+        <div><label>Ζωοτροφή</label><select id="fName"></select></div>
+        <div><label>Απόθεμα (kg)</label><input id="fKg" type="number" step="1"></div>
+        <div><label>€/kg</label><input id="fPrice" type="number" step="0.001"></div>
+      </div>
+      <div class="btnrow"><button class="btn mini" id="fSave">➕ Προσθήκη/ενημέρωση αποθέματος</button></div>
+      <div id="feedStock" style="margin-top:10px"></div>
+    </div>
+    <div class="card">
+      <h2>🧮 Υπολογιστής σιτηρεσίου (μηρυκαστικά/ιπποειδή)</h2>
+      <div class="row">
+        <div><label>Είδος</label><select id="raSp"></select></div>
+        <div><label>Στάδιο</label><select id="raStage"><option value="prod">Γαλακτοπαραγωγή / πάχυνση</option><option value="late">Τέλος κύησης</option><option value="maint">Συντήρηση / ξηρά</option></select></div>
+        <div><label>Βάρος (kg)</label><input id="raBw" type="number" step="1"></div>
+      </div>
+      <label>Ζωοτροφές (kg ως έχει / ζώο / ημέρα)</label>
+      <div id="raRows"></div>
+      <div class="btnrow"><button class="btn sec mini" id="raAdd">➕ Ζωοτροφή</button></div>
+      <div id="raOut" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🩺 Έλεγχος συμπτωμάτων</h2>
+      <div class="note bad"><b>⚠️ Δεν αντικαθιστά τον κτηνίατρο.</b> Για νοσήματα <b>υποχρεωτικής δήλωσης</b> (📣) η ειδοποίηση της Κτηνιατρικής Υπηρεσίας/ΔΑΟΚ της Περιφέρειας είναι νομική υποχρέωση του κτηνοτρόφου.</div>
+      <label>Ομάδα ζώων</label><select id="syGrp"></select>
+      <div class="symgrid" id="symGrid"></div>
+      <div class="btnrow"><button class="btn sec mini" id="syClear">🧹 Καθαρισμός</button></div>
+      <div id="syOut" style="margin-top:10px"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ VISION ============================ -->
+<div class="tabpane" id="tab-vision">
+<div class="grid">
+  <div>
+    <div class="card">
+      <h2>📷 FAMACHA© — αναιμία αιγοπροβάτων</h2>
+      <div class="hint">Φωτογράφισε τον <b>κάτω βλεφαρικό επιπεφυκότα</b> (τράβηξε απαλά το κάτω βλέφαρο) σε φυσικό φως χωρίς φλας. Μετά <b>κάνε κλικ πάνω στο ροζ/κόκκινο σημείο</b> για δειγματοληψία χρώματος. Η ανάλυση γίνεται τοπικά (offline).</div>
+      <div id="dropzone">📎 Σύρε εδώ ή πάτησε για επιλογή φωτογραφίας</div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none">
+      <canvas id="famCanvas" style="display:none"></canvas>
+      <label style="margin-top:10px">Ζώο (προαιρετικό — για καταχώρηση)</label>
+      <select id="famTarget"></select>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h2>🔬 Αποτέλεσμα</h2>
+      <div id="famResult"><div class="empty">Ανέβασε φωτογραφία και κάνε κλικ στον επιπεφυκότα.</div></div>
+    </div>
+    <div class="card">
+      <h2>⚖️ Οδηγός Σωματικής Κατάστασης (BCS 1–5)</h2>
+      <select id="bcsGrp"><option value="smallrum">Αιγοπρόβατα</option><option value="cattle">Βοοειδή</option></select>
+      <div id="bcsBox" style="margin-top:8px"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================ DATA ============================ -->
+<div class="tabpane" id="tab-data">
+  <div class="card" style="max-width:660px;margin:0 auto">
+    <h2>💾 Δεδομένα &amp; αντίγραφα</h2>
+    <p class="small">Όλα τα δεδομένα αποθηκεύονται τοπικά στον browser σου (localStorage). Κράτα τακτικά αντίγραφο.</p>
+    <div class="btnrow">
+      <button class="btn" id="expJson">⬇️ Εξαγωγή αντιγράφου (JSON)</button>
+      <button class="btn sec" id="impJson">⬆️ Εισαγωγή αντιγράφου</button>
+      <input type="file" id="impFile" accept=".json,application/json" style="display:none">
+    </div>
+    <div class="btnrow">
+      <button class="btn sec" id="expCsv">📊 Ημερολόγιο (CSV/Excel)</button>
+      <button class="btn sec" id="expAnimals">🏷️ Μητρώο ζώων (CSV)</button>
+      <button class="btn sec" id="printReport">🖨️ Εκτύπωση (PDF)</button>
+    </div>
+    <div class="btnrow">
+      <button class="btn sec" id="demoBtn">🧪 Φόρτωση παραδείγματος</button>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line);margin:14px 0">
+    <div class="btnrow">
+      <button class="btn bad" id="clearAll">🗑️ Καθαρισμός όλων</button>
+    </div>
+    <div class="note info" style="margin-top:14px">
+      <b>Πηγή καιρού:</b> Open-Meteo (δωρεάν, χωρίς κλειδί) όταν υπάρχει σύνδεση — θερμοκρασία, υγρασία, βροχή.
+      <br><b>Μοντέλα:</b> THI (NRC 1971), απώλεια γάλακτος (Bouraoui 2002), ανάγκες ΞΟ/νερού (NRC), κύηση/επώαση (MSD Vet Manual), FAMACHA© (Van Wyk &amp; Bath 2002).
+      <br><b>Απόρρητο:</b> Δεν στέλνονται προσωπικά δεδομένα πουθενά· μόνο συντεταγμένες προς το Open-Meteo για τον καιρό.
+    </div>
+    <p class="small" id="verLine" style="text-align:center;margin-top:14px"></p>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<footer style="text-align:center;padding:16px 12px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);margin-top:6px">© by Chronis Makris · Κτηνοτρόφος ΤΝ 🐄</footer>
+
+<script>
+/* ================= STORAGE & HELPERS ================= */
+const LS_KEY="ktino_ai_v1";
+const SP=window.SPECIES, GRP=window.SPECIES_GROUPS;
+let DB={units:[],herds:[],animals:[],logs:[],repro:[],feeds:[],weather:{},settings:{}};
+function load(){ try{const r=localStorage.getItem(LS_KEY); if(r) DB=Object.assign(DB,JSON.parse(r));}catch(e){} }
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){} }
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=(n,d=1)=>isFinite(n)?Number(n).toLocaleString('el-GR',{maximumFractionDigits:d}):"—";
+const pad=n=>String(n).padStart(2,'0');
+const isoOf=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayISO=()=>isoOf(new Date());
+const addDays=(iso,n)=>{const d=new Date(iso+'T12:00:00'); d.setDate(d.getDate()+Math.round(n)); return isoOf(d);};
+const diffDays=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+const fd=iso=>{ if(!iso) return '—'; const p=iso.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; };
+const MONTHS=['Ιανουάριος','Φεβρουάριος','Μάρτιος','Απρίλιος','Μάιος','Ιούνιος','Ιούλιος','Αύγουστος','Σεπτέμβριος','Οκτώβριος','Νοέμβριος','Δεκέμβριος'];
+const getU=id=>DB.units.find(x=>x.id===id);
+const getH=id=>DB.herds.find(x=>x.id===id);
+const getA=id=>DB.animals.find(x=>x.id===id);
+const herdLabel=h=>{ if(!h) return '—'; const m=SP[h.sp]||{}; const u=getU(h.unitId)||{}; return (m.e||'')+' '+(h.name||m.name||'')+(h.breed?' · '+h.breed:'')+' — '+(u.name||''); };
+const isMammal=sp=>!!(SP[sp]&&SP[sp].gest);
+const isBird=sp=>!!(SP[sp]&&SP[sp].incub);
+const GONE=['Πωλήθηκε','Θανατώθηκε','Νεκρό'];
+
+/* ================= THEME ================= */
+function applyTheme(){ const t=DB.settings.theme||'dark'; if(t==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme',t); $('themeBtn').textContent=t==='dark'?'🌙':t==='light'?'☀️':'🌓'; }
+$('themeBtn').onclick=()=>{ const o=['dark','light','auto']; DB.settings.theme=o[(o.indexOf(DB.settings.theme||'dark')+1)%3]; save(); applyTheme(); };
+
+/* ================= TABS ================= */
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active'); $('tab-'+b.dataset.tab).classList.add('active');
+  const t=b.dataset.tab;
+  if(t==='dash') renderDash();
+  if(t==='units') setTimeout(initMap,60);
+  if(t==='animals') renderAnimals();
+  if(t==='agenda') renderLogs();
+  if(t==='encyclopedia') renderEncyclopedia();
+  if(t==='program'){fillHerdSelect('progHerd'); renderProgram();}
+  if(t==='repro'){fillHerdSelect('rHerd',h=>isMammal(h.sp)||isBird(h.sp)); fillReproAnimals(); renderReproCalc(); renderBirths(); renderProd(); renderReproKpi();}
+  if(t==='health'){fillHerdSelect('hsHerd'); renderHeat(); renderFeed(); renderRation(); renderSymptoms();}
+  if(t==='vision'){fillFamTarget(); renderBCS();}
+});
+
+/* ================= NETWORK ================= */
+function updNet(){ const on=navigator.onLine; const el=$('netStatus'); el.textContent=on?"● Online":"○ Offline"; el.classList.toggle('off',!on); }
+window.addEventListener('online',updNet); window.addEventListener('offline',updNet);
+
+/* ================= WEATHER (Open-Meteo) ================= */
+async function fetchWeather(lat,lon){
+  const daily="temperature_2m_max,temperature_2m_min,precipitation_sum,relative_humidity_2m_mean,relative_humidity_2m_min";
+  const u=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=${daily}&past_days=14&forecast_days=16&timezone=auto`;
+  const d=await (await fetch(u)).json();
+  if(!d||!d.daily||!d.daily.time) throw new Error('no-data');
+  const t=d.daily, out=[];
+  for(let i=0;i<t.time.length;i++){
+    const tmax=t.temperature_2m_max[i], tmin=t.temperature_2m_min[i]; if(tmax==null||tmin==null) continue;
+    out.push({date:t.time[i],tmax,tmin,tmean:(tmax+tmin)/2,prcp:t.precipitation_sum[i]||0,
+      rh:t.relative_humidity_2m_mean?t.relative_humidity_2m_mean[i]:null, rhmin:t.relative_humidity_2m_min?t.relative_humidity_2m_min[i]:null});
+  }
+  if(!out.length) throw new Error('no-data');
+  return out;
+}
+async function ensureWeather(unit,force){
+  if(!unit||unit.lat==null||unit.lon==null) return null;
+  const cached=DB.weather[unit.id];
+  if(cached && !force && Date.now()-cached.ts<6*3600e3) return cached.days;
+  if(!navigator.onLine) return cached?cached.days:null;
+  try{ const days=await fetchWeather(unit.lat,unit.lon); DB.weather[unit.id]={ts:Date.now(),days}; save(); return days; }
+  catch(e){ return cached?cached.days:null; }
+}
+async function refreshAllWeather(){ for(const u of DB.units){ if(u.lat!=null) await ensureWeather(u,true); } }
+const weatherOfHerd=h=>{ const w=DB.weather[h&&h.unitId]; return w?w.days:null; };
+
+/* ================= ΖΩΟΤΕΧΝΙΚΑ ΜΟΝΤΕΛΑ ================= */
+// THI (NRC 1971): T σε °C, RH σε %
+function thi(t,rh){ rh=(rh==null?55:rh); return (1.8*t+32)-(0.55-0.0055*rh)*(1.8*t-26); }
+function dayStress(sp,d){
+  const hs=SP[sp].heat; let v;
+  if(hs.mode==='thi') v=thi(d.tmax, d.rhmin!=null?d.rhmin:(d.rh!=null?d.rh-15:40));
+  else v=d.tmax;
+  const lvl=v>=hs.sev?3:v>=hs.mod?2:v>=hs.mild?1:0;
+  return {v,lvl};
+}
+const LVL=['Χωρίς στρες','Ήπιο','Μέτριο','Σοβαρό'], LVLC=['ok','warn','bad','bad'];
+function heatRisk(sp,days){
+  if(!days||!days.length) return null;
+  const t=todayISO(); const fut=days.filter(d=>d.date>=t).slice(0,7); if(!fut.length) return null;
+  let worst=0,peak=-99,peakDay=null,nDays=0,milkLoss=0;
+  fut.forEach(d=>{ const s=dayStress(sp,d); if(s.lvl>0) nDays++; if(s.v>peak){peak=s.v;peakDay=d.date;} if(s.lvl>worst) worst=s.lvl;
+    if(sp==='dairy_cow'){ const tm=thi(d.tmean,d.rh); if(tm>69) milkLoss+=0.41*(tm-69); } });
+  const cold=fut.filter(d=>d.tmin<=0).length, minT=Math.min(...fut.map(d=>d.tmin));
+  return {worst,peak,peakDay,nDays,milkLoss:milkLoss/fut.length,cold,minT,mode:SP[sp].heat.mode,fut};
+}
+// Νερό (λίτρα/ζώο/ημέρα): βάση + αύξηση ~4%/°C πάνω από 20°C (έως ×2)
+function waterPerHead(sp,tmax){
+  const m=SP[sp]; if(!m.water) return 0;
+  const base=(m.water[0]+m.water[1])/2;
+  const f=Math.min(2,1+Math.max(0,(tmax||20)-20)*0.04);
+  return base*f;
+}
+const SYSF={'Εκτατικό (βοσκή)':0.35,'Ημιεντατικό':0.7,'Εντατικό (σταβλισμός)':1};
+// Ημερήσια ανάγκη ζωοτροφής από αποθήκη (kg ως έχει) για κοπάδι
+function feedNeed(h){
+  const m=SP[h.sp]; if(!m||h.sp==='bees') return {dm:0,asFed:0,fromStock:0};
+  const n=Number(h.count)||0, bw=Number(h.bw)||m.bw||0;
+  let dm, asFed;
+  if(m.dmi){ dm=n*bw*m.dmi/100; asFed=dm/0.88; }
+  else { asFed=n*(m.feedKg||0); dm=asFed*0.88; }
+  const f=m.dmi?(SYSF[h.sys]||0.7):(h.sys==='Εκτατικό (βοσκή)'?0.7:1);
+  return {dm,asFed,fromStock:asFed*f};
+}
+// Καμπύλη ωοτοκίας (ποσοστό) ανά ηλικία σε εβδομάδες
+function layRate(sp,ageW){
+  const m=SP[sp], s=m.layStart||19, pk=m.prod.peak||0.9;
+  if(ageW<s) return 0;
+  if(ageW<s+6) return pk*(ageW-s)/6;
+  return Math.max(0.55, pk-0.0035*(ageW-s-6));
+}
+// Βάρος κοτόπουλου κρεατοπαραγωγής ανά ημέρα ηλικίας (καμπύλη Ross/Cobb, κλιμακωμένη)
+const BROILER=[[0,0.042],[7,0.19],[14,0.5],[21,0.97],[28,1.55],[35,2.15],[42,2.75],[49,3.3],[56,3.8]];
+function broilerW(day,finalBw){
+  let w=BROILER[BROILER.length-1][1];
+  for(let i=0;i<BROILER.length-1;i++){ const a=BROILER[i],b=BROILER[i+1]; if(day<=b[0]){ w=a[1]+(b[1]-a[1])*(Math.max(0,day)-a[0])/(b[0]-a[0]); break; } }
+  return w*(finalBw||2.7)/2.75;
+}
+// Πρόβλεψη παραγωγής κοπαδιού
+function prodForecast(h){
+  const m=SP[h.sp], p=m.prod, n=Number(h.count)||0, fem=Number(h.females)||n, price=Number(h.price)||0;
+  const r={lines:[],revenue:0,unit:'',annual:0};
+  switch(p.type){
+    case 'milk':{ const per=Number(h.yieldPer)||p.per; const annual=fem*per; const daily=fem*(p.lactFrac||0.8)*per/(m.lact||300);
+      r.annual=annual; r.unit='kg γάλα'; r.revenue=annual*price;
+      r.lines.push(['Γάλα/έτος',fmt(annual,0)+' kg'],['Ημερήσια (σε γαλακτ.)','~'+fmt(daily,0)+' kg'],['Ανά θηλυκό',fmt(per,0)+' kg/έτος']);
+      if(p.young){ r.lines.push(['Γεννήσεις/έτος','~'+fmt(fem*p.young*0.9,0)+' '+p.youngName]); }
+      else if(m.gest){ r.lines.push(['Μοσχάρια/έτος','~'+fmt(fem*0.85,0)]); }
+      break; }
+    case 'eggs':{ const per=Number(h.yieldPer)||p.per; const ageW=h.hatch?diffDays(h.hatch,todayISO())/7:(m.layStart||19)+10;
+      const rate=layRate(h.sp,ageW); const daily=fem*rate; const annual=fem*per;
+      r.annual=annual; r.unit='αυγά'; r.revenue=annual*price;
+      r.lines.push(['Ηλικία',fmt(ageW,0)+' εβδ.'],['Ωοτοκία τώρα',fmt(rate*100,0)+'%'],['Αυγά/ημέρα','~'+fmt(daily,0)],['Αυγά/έτος',fmt(annual,0)]);
+      break; }
+    case 'broiler':{ const day=h.hatch?diffDays(h.hatch,todayISO()):0; const w=broilerW(day,p.finalBw); const left=Math.max(0,p.days-day);
+      const kg=n*0.96*p.finalBw; r.annual=kg*Math.floor(365/(p.days+14)); r.unit='kg ζων βάρος'; r.revenue=kg*price;
+      r.lines.push(['Ηλικία',day+' ημ.'],['Εκτ. βάρος τώρα',fmt(w,2)+' kg'],['Ημέρες έως σφαγή',left+' ημ.'],['Παρτίδα (96% επιβ.)',fmt(kg,0)+' kg'],['Τροφή παρτίδας','~'+fmt(kg*p.fcr/1000,1)+' t'],['Εκτροφές/έτος',Math.floor(365/(p.days+14))]);
+      break; }
+    case 'meat':{ const bw=Number(h.bw)||m.bw; const days=Math.max(0,(p.finalBw-bw)/p.adg); const fin=n*p.finalBw;
+      r.annual=fin; r.unit='kg ζων βάρος'; r.revenue=fin*price;
+      r.lines.push(['Αύξηση κοπαδιού/ημ.',fmt(n*p.adg,1)+' kg'],['Ημέρες έως τελικό βάρος','~'+fmt(days,0)],['Τελικό ζων βάρος',fmt(fin,0)+' kg']);
+      if(p.carcass) r.lines.push(['Σφάγια (~'+Math.round(p.carcass*100)+'%)',fmt(fin*p.carcass,0)+' kg']);
+      break; }
+    case 'piglets': case 'kits':{ const annual=fem*p.litters*p.perLitter; r.annual=annual; r.unit=p.type==='piglets'?'χοιρίδια':'κουνελάκια'; r.revenue=annual*price;
+      r.lines.push(['Τοκετοί/θηλυκό/έτος',p.litters],['Απογαλ./τοκετό',p.perLitter],['Σύνολο/έτος',fmt(annual,0)]);
+      break; }
+    case 'honey':{ const per=Number(h.yieldPer)||p.per; const annual=n*per; r.annual=annual; r.unit='kg μέλι'; r.revenue=annual*price;
+      r.lines.push(['Μέλι/κυψέλη',fmt(per,1)+' kg'],['Σύνολο/έτος',fmt(annual,0)+' kg']); break; }
+    default: r.lines.push(['Παραγωγή',p.u]);
+  }
+  return r;
+}
+// Υπολογισμοί κύησης/επώασης
+function reproDates(sp,date){
+  const m=SP[sp], o=[];
+  if(m.gest){
+    const due=addDays(date,m.gest);
+    o.push({k:'due',t:'🍼 Αναμενόμενος τοκετός',d:due});
+    if(m.cycle) o.push({t:'🔁 Έλεγχος επιστροφής σε οίστρο',d:addDays(date,m.cycle)});
+    if(m.preg) o.push({t:'🩻 Διάγνωση κυοφορίας (υπέρηχος/ψηλάφηση)',d:addDays(date,m.preg)});
+    if(m.dry) o.push({t:'🥛 Ξήρανση',d:addDays(due,-m.dry)});
+    if(m.grp==='smallrum') o.push({t:'💉 Αναμνηστικό κλωστηριδίων',d:addDays(due,-35)});
+    if(m.wean) o.push({t:'🍼 Απογαλακτισμός',d:addDays(due,m.wean)});
+  } else if(m.incub){
+    const hatch=addDays(date,m.incub);
+    o.push({t:'🔦 Ωοσκόπηση (1η)',d:addDays(date,7)},{t:'🔦 Ωοσκόπηση (2η)',d:addDays(date,Math.round(m.incub*0.65))},
+      {t:'🔒 Lockdown — σταμάτημα γυρίσματος, ↑υγρασία',d:addDays(date,m.incub-3)},{k:'due',t:'🐣 Αναμενόμενη εκκόλαψη',d:hatch});
+  }
+  return o;
+}
+
+/* ================= UNITS & HERDS ================= */
+let editUnit=null, selUnit=null, editHerd=null;
+function fillSpeciesSelect(sel){
+  const byG={}; Object.entries(SP).forEach(([k,m])=>{(byG[m.grp]=byG[m.grp]||[]).push([k,m]);});
+  sel.innerHTML=Object.entries(byG).map(([g,arr])=>`<optgroup label="${esc(GRP[g])}">`+arr.map(([k,m])=>`<option value="${k}">${m.e} ${esc(m.name)}</option>`).join('')+'</optgroup>').join('');
+}
+function fillBreedSelect(){
+  const m=SP[$('hSp').value]; $('hBreed').innerHTML=m.breeds.map(b=>`<option>${esc(b)}</option>`).join('')+'<option>Διασταύρωση / Άλλη</option>';
+  $('hBw').placeholder='π.χ. '+(m.bw||'—');
+  const bird=isBird($('hSp').value), mam=isMammal($('hSp').value), bees=$('hSp').value==='bees';
+  $('hBmWrap').style.display=mam?'':'none';
+  $('hHatchWrap').style.display=(bird||m.prod.type==='meat')?'':'none';
+  $('hHatchLbl').textContent=bird?'Ημ. εκκόλαψης (ηλικία σμήνους)':'Ημ. εισαγωγής σε πάχυνση';
+  $('hCountLbl').textContent=bees?'Αριθμός κυψελών':'Σύνολο ζώων';
+  $('hFemLbl').textContent=bees?'—':(bird?'Θηλυκά / όρνιθες':'Ενήλικα θηλυκά');
+  $('hMaleLbl').textContent=bees?'—':(bird?'Κόκορες':'Αρσενικά αναπαρ.');
+  $('hFem').disabled=$('hMale').disabled=bees;
+  const pu={milk:'kg γάλα/θηλυκό',eggs:'αυγά/όρνιθα',honey:'kg μέλι/κυψέλη',broiler:'—',meat:'—',piglets:'—',kits:'—',none:'—'}[m.prod.type];
+  $('hYieldLbl').textContent='Δική σου απόδοση ('+pu+'/έτος)';
+  $('hYield').disabled=pu==='—';
+  $('hPriceLbl').textContent='Τιμή πώλησης ('+({milk:'€/kg γάλα',eggs:'€/αυγό',honey:'€/kg μέλι',broiler:'€/kg ζων',meat:'€/kg ζων',piglets:'€/χοιρίδιο',kits:'€/κουνέλι',none:'—'}[m.prod.type])+')';
+  $('hSpHint').innerHTML=`<b>${m.e} ${esc(m.name)}:</b> ${esc(m.note)}`;
+}
+$('hSp').onchange=fillBreedSelect;
+$('hBm').innerHTML='<option value="">—</option>'+MONTHS.map((x,i)=>`<option value="${i+1}">${x}</option>`).join('');
+
+$('uSave').onclick=()=>{
+  const name=$('uName').value.trim(); if(!name){alert('Δώσε ονομασία μονάδας.');return;}
+  const lat=parseFloat($('uLat').value), lon=parseFloat($('uLon').value);
+  const rec={id:editUnit||uid(),name,type:$('uType').value,area:parseFloat($('uArea').value)||0,code:$('uCode').value.trim(),alt:parseFloat($('uAlt').value)||null,
+    lat:isNaN(lat)?null:lat,lon:isNaN(lon)?null:lon,poly:drawPts.length>=3?drawPts.slice():((editUnit&&getU(editUnit)&&getU(editUnit).poly)||null),notes:$('uNotes').value.trim()};
+  if(editUnit){const i=DB.units.findIndex(u=>u.id===editUnit); DB.units[i]=rec;} else DB.units.push(rec);
+  selUnit=rec.id; editUnit=null; save(); clearUnitForm(); renderUnits(); refreshTargets();
+  if(rec.lat!=null) ensureWeather(rec,true).then(()=>renderDash());
+};
+$('uCancel').onclick=()=>{editUnit=null;clearUnitForm();};
+function clearUnitForm(){['uName','uArea','uCode','uAlt','uLat','uLon','uNotes'].forEach(id=>$(id).value='');$('uCancel').style.display='none';$('unitFormTitle').textContent='➕ Νέα μονάδα (στάβλος / στάνη / βοσκότοπος)';
+  drawPts=[]; if(map){ if(mapPoly){map.removeLayer(mapPoly);mapPoly=null;} if(mapMarker){map.removeLayer(mapMarker);mapMarker=null;} } }
+$('uGeo').onclick=()=>{ if(!navigator.geolocation){alert('Δεν υποστηρίζεται GPS.');return;}
+  navigator.geolocation.getCurrentPosition(p=>{ $('uLat').value=p.coords.latitude.toFixed(5); $('uLon').value=p.coords.longitude.toFixed(5); if(map){ map.setView([p.coords.latitude,p.coords.longitude],16); setMarker(p.coords.latitude,p.coords.longitude,false);} },
+    e=>alert('Αδυναμία εντοπισμού: '+e.message),{enableHighAccuracy:true,timeout:15000}); };
+
+$('hSave').onclick=()=>{
+  if(!selUnit){alert('Επίλεξε μονάδα.');return;}
+  const count=parseInt($('hCount').value)||0; if(count<=0){alert('Δώσε αριθμό ζώων/κυψελών.');return;}
+  const rec={id:editHerd||uid(),unitId:selUnit,sp:$('hSp').value,breed:$('hBreed').value,name:$('hName').value.trim(),count,
+    females:parseInt($('hFem').value)||null,males:parseInt($('hMale').value)||null,sys:$('hSys').value,bw:parseFloat($('hBw').value)||null,
+    birthMonth:parseInt($('hBm').value)||null,hatch:$('hHatch').value||null,yieldPer:parseFloat($('hYield').value)||null,price:parseFloat($('hPrice').value)||null};
+  if(editHerd){const i=DB.herds.findIndex(h=>h.id===editHerd); rec.unitId=DB.herds[i].unitId; DB.herds[i]=rec;} else DB.herds.push(rec);
+  editHerd=null; save(); clearHerdForm(); renderUnits(); refreshTargets();
+};
+$('hCancel').onclick=()=>{editHerd=null;clearHerdForm();};
+function clearHerdForm(){['hName','hCount','hFem','hMale','hBw','hHatch','hYield','hPrice'].forEach(id=>$(id).value='');$('hBm').value='';$('hCancel').style.display='none';$('herdFormTitle').textContent='🐑 Προσθήκη κοπαδιού / ομάδας ζώων';$('hSave').textContent='💾 Προσθήκη κοπαδιού';}
+function editHerdStart(id){ const h=getH(id); if(!h)return; editHerd=id; selUnit=h.unitId; $('hSp').value=h.sp; fillBreedSelect(); $('hBreed').value=h.breed;
+  $('hName').value=h.name||''; $('hCount').value=h.count; $('hFem').value=h.females||''; $('hMale').value=h.males||''; $('hSys').value=h.sys; $('hBw').value=h.bw||'';
+  $('hBm').value=h.birthMonth||''; $('hHatch').value=h.hatch||''; $('hYield').value=h.yieldPer||''; $('hPrice').value=h.price||'';
+  $('hSave').disabled=false; $('hSave').textContent='💾 Αποθήκευση αλλαγών'; $('hCancel').style.display=''; $('herdFormTitle').textContent='✏️ Επεξεργασία κοπαδιού';
+  $('herdUnitHint').textContent='Μονάδα: '+(getU(h.unitId)||{}).name; $('hSp').scrollIntoView({behavior:'smooth',block:'center'}); }
+function editUnitStart(u){ editUnit=u.id; $('uName').value=u.name; $('uType').value=u.type||'Άλλο'; $('uArea').value=u.area||''; $('uCode').value=u.code||''; $('uAlt').value=u.alt||'';
+  $('uLat').value=u.lat??''; $('uLon').value=u.lon??''; $('uNotes').value=u.notes||''; $('uCancel').style.display=''; $('unitFormTitle').textContent='✏️ Επεξεργασία μονάδας';
+  if(map){ drawPts=[]; if(mapPoly){map.removeLayer(mapPoly);mapPoly=null;} if(u.poly&&u.poly.length){drawPts=u.poly.slice();redrawPoly();map.fitBounds(mapPoly.getBounds());} else if(u.lat!=null){setMarker(u.lat,u.lon,false);map.setView([u.lat,u.lon],15);} }
+  window.scrollTo({top:0,behavior:'smooth'}); }
+function renderUnits(){
+  $('unitCount').textContent=DB.units.length+' μονάδες · '+DB.herds.length+' κοπάδια';
+  if(!DB.units.length){$('unitList').innerHTML='<div class="empty">Δεν υπάρχουν μονάδες ακόμη. Ξεκίνα από τη φόρμα αριστερά.</div>';return;}
+  $('unitList').innerHTML=DB.units.map(u=>{
+    const hs=DB.herds.filter(h=>h.unitId===u.id);
+    const tot=hs.reduce((s,h)=>s+(h.sp==='bees'?0:(h.count||0)),0);
+    return `<div class="listitem ${u.id===selUnit?'sel':''}" data-u="${u.id}">
+      <div class="top"><div><div class="nm">🏡 ${esc(u.name)}</div>
+      <div class="meta">${esc(u.type||'')} · ${u.area?fmt(u.area,1)+' στρ. · ':''}${u.lat!=null?'📍 '+u.lat.toFixed(3)+', '+u.lon.toFixed(3):'⚠️ χωρίς GPS'}${u.code?' · ΚΕ '+esc(u.code):''} · ${fmt(tot,0)} ζώα</div></div>
+      <div class="btnrow" style="margin:0"><button class="btn sec mini" data-sel="${u.id}">➕ Κοπάδι</button><button class="btn sec mini" data-eu="${u.id}">✏️</button><button class="btn sec mini" data-du="${u.id}">🗑️</button></div></div>
+      ${hs.map(h=>{const m=SP[h.sp];return `<div class="herdchip"><span><b>${m.e} ${esc(h.name||m.name)}</b> · ${esc(h.breed||'')} · ${fmt(h.count,0)} ${m.unit}${h.females?' ('+h.females+' ♀)':''} · <span class="small">${esc(h.sys)}</span></span>
+        <span><button class="btn sec mini" data-eh="${h.id}">✏️</button> <button class="btn sec mini" data-dh="${h.id}">🗑️</button></span></div>`;}).join('')}
+    </div>`;}).join('');
+  $('unitList').querySelectorAll('[data-sel]').forEach(b=>b.onclick=e=>{e.stopPropagation(); selUnit=b.dataset.sel; editHerd=null; clearHerdForm(); $('hSave').disabled=false; $('herdUnitHint').textContent='Νέο κοπάδι στη μονάδα: '+getU(selUnit).name; renderUnits(); $('hSp').scrollIntoView({behavior:'smooth',block:'center'});});
+  $('unitList').querySelectorAll('[data-eu]').forEach(b=>b.onclick=e=>{e.stopPropagation(); editUnitStart(getU(b.dataset.eu));});
+  $('unitList').querySelectorAll('[data-du]').forEach(b=>b.onclick=e=>{e.stopPropagation(); const u=getU(b.dataset.du);
+    if(!confirm('Διαγραφή μονάδας «'+u.name+'» μαζί με κοπάδια & ζώα της;'))return;
+    const hids=DB.herds.filter(h=>h.unitId===u.id).map(h=>h.id);
+    DB.herds=DB.herds.filter(h=>h.unitId!==u.id); DB.animals=DB.animals.filter(a=>!hids.includes(a.herdId)); DB.units=DB.units.filter(x=>x.id!==u.id); delete DB.weather[u.id];
+    save(); renderUnits(); refreshTargets(); });
+  $('unitList').querySelectorAll('[data-eh]').forEach(b=>b.onclick=e=>{e.stopPropagation(); editHerdStart(b.dataset.eh);});
+  $('unitList').querySelectorAll('[data-dh]').forEach(b=>b.onclick=e=>{e.stopPropagation(); const h=getH(b.dataset.dh);
+    if(!confirm('Διαγραφή κοπαδιού «'+herdLabel(h)+'» και των ζώων του;'))return;
+    DB.herds=DB.herds.filter(x=>x.id!==h.id); DB.animals=DB.animals.filter(a=>a.herdId!==h.id); save(); renderUnits(); refreshTargets(); });
+  $('unitList').querySelectorAll('[data-u]').forEach(d=>d.onclick=()=>{ selUnit=d.dataset.u; $('hSave').disabled=false; if(!editHerd) $('herdUnitHint').textContent='Νέο κοπάδι στη μονάδα: '+getU(selUnit).name; renderUnits(); });
+}
+function fillHerdSelect(selId,filter,withAll){
+  const sel=$(selId), cur=sel.value; const hs=DB.herds.filter(filter||(()=>true));
+  sel.innerHTML=(withAll?`<option value="">${withAll}</option>`:'')+(hs.length?hs.map(h=>`<option value="${h.id}">${esc(herdLabel(h))}</option>`).join(''):(withAll?'':'<option value="">— δεν υπάρχουν κοπάδια —</option>'));
+  if(cur && hs.some(h=>h.id===cur)) sel.value=cur;
+}
+function refreshTargets(){
+  // στόχοι ημερολογίου
+  const t=$('lTarget'), cur=t.value;
+  t.innerHTML=(DB.herds.length?'<optgroup label="Κοπάδια">'+DB.herds.map(h=>`<option value="herd:${h.id}">${esc(herdLabel(h))}</option>`).join('')+'</optgroup>':'')+
+    (DB.animals.filter(a=>!GONE.includes(a.status)).length?'<optgroup label="Ζώα (ατομικά)">'+DB.animals.filter(a=>!GONE.includes(a.status)).map(a=>`<option value="animal:${a.id}">🏷️ ${esc(a.tag)}${a.name?' «'+esc(a.name)+'»':''}</option>`).join('')+'</optgroup>':'')+
+    (DB.units.length?'<optgroup label="Μονάδες (γενικά)">'+DB.units.map(u=>`<option value="unit:${u.id}">🏡 ${esc(u.name)}</option>`).join('')+'</optgroup>':'');
+  if(cur) t.value=cur;
+  const f=$('agFilter'), fc=f.value;
+  f.innerHTML='<option value="">Όλα</option>'+DB.herds.map(h=>`<option value="herd:${h.id}">${esc(herdLabel(h))}</option>`).join('')+DB.units.map(u=>`<option value="unit:${u.id}">🏡 ${esc(u.name)}</option>`).join('');
+  f.value=fc;
+  ['dashUnit','mwUnit'].forEach(id=>{ const s=$(id), c=s.value; s.innerHTML=DB.units.length?DB.units.map(u=>`<option value="${u.id}">${esc(u.name)}</option>`).join(''):'<option value="">— καμία μονάδα —</option>'; if(c&&getU(c)) s.value=c; });
+  fillHerdSelect('aHerd'); fillHerdSelect('aFilter',null,'Όλα τα κοπάδια');
+}
+
+/* ================= MAP (Leaflet + OpenStreetMap) ================= */
+let map=null, mapMarker=null, mapPoly=null, drawPts=[], drawMode=false;
+function initMap(){
+  const el=$('map');
+  if(!window.L){ el.innerHTML='<div class="empty">🗺️ Ο χάρτης δεν είναι διαθέσιμος. Όρισε συντεταγμένες χειροκίνητα.</div>'; return; }
+  if(map){ map.invalidateSize(); return; }
+  map=L.map('map',{zoomControl:true}).setView([39.2,22.5],6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  map.on('click',e=>{ if(drawMode){ drawPts.push([e.latlng.lat,e.latlng.lng]); redrawPoly(); } else setMarker(e.latlng.lat,e.latlng.lng,true); });
+}
+function setMarker(lat,lon,fill){
+  if(mapPoly){map.removeLayer(mapPoly);mapPoly=null;} drawPts=[];
+  if(mapMarker) mapMarker.setLatLng([lat,lon]); else mapMarker=L.marker([lat,lon],{draggable:true}).addTo(map);
+  mapMarker.off('dragend').on('dragend',ev=>{const ll=ev.target.getLatLng();$('uLat').value=ll.lat.toFixed(5);$('uLon').value=ll.lng.toFixed(5);});
+  if(fill){$('uLat').value=lat.toFixed(5);$('uLon').value=lon.toFixed(5);}
+}
+function redrawPoly(){
+  if(mapMarker){map.removeLayer(mapMarker);mapMarker=null;}
+  if(mapPoly) map.removeLayer(mapPoly);
+  if(drawPts.length){
+    mapPoly=L.polygon(drawPts,{color:'#c62828',weight:2,fillOpacity:0.2}).addTo(map);
+    const c=polyCentroid(drawPts); $('uLat').value=c[0].toFixed(5); $('uLon').value=c[1].toFixed(5);
+    if(drawPts.length>=3){ const s=polyAreaStr(drawPts); $('uArea').value=s.toFixed(2); $('mapHint').textContent='Όριο: '+drawPts.length+' γωνίες · έκταση ≈ '+fmt(s,2)+' στρέμματα.'; }
+    else $('mapHint').textContent='Κάνε κλικ σε ≥3 γωνίες για υπολογισμό έκτασης.';
+  }
+}
+function polyCentroid(p){let a=0,b=0;p.forEach(x=>{a+=x[0];b+=x[1];});return [a/p.length,b/p.length];}
+function polyAreaStr(pts){ const R=6378137, lat0=polyCentroid(pts)[0]*Math.PI/180;
+  const xy=pts.map(p=>[R*(p[1]*Math.PI/180)*Math.cos(lat0),R*(p[0]*Math.PI/180)]);
+  let a=0; for(let i=0;i<xy.length;i++){const j=(i+1)%xy.length; a+=xy[i][0]*xy[j][1]-xy[j][0]*xy[i][1];} return Math.abs(a/2)/1000; }
+$('mPin').onclick=()=>{drawMode=false;$('mapHint').textContent='Λειτουργία καρφίτσας: κλικ στον χάρτη για τη θέση.';};
+$('mDraw').onclick=()=>{drawMode=true;drawPts=[];if(mapPoly){map.removeLayer(mapPoly);mapPoly=null;}$('mapHint').textContent='Λειτουργία σχεδίασης: κλικ στις γωνίες του βοσκοτόπου.';};
+$('mUndo').onclick=()=>{if(drawMode&&drawPts.length){drawPts.pop();redrawPoly();}};
+$('mClear').onclick=()=>{drawPts=[];if(map){if(mapPoly){map.removeLayer(mapPoly);mapPoly=null;}if(mapMarker){map.removeLayer(mapMarker);mapMarker=null;}}$('mapHint').textContent='Καθαρίστηκε.';};
+
+/* ================= ANIMAL REGISTRY ================= */
+let editAnimal=null;
+function ageStr(birth){ if(!birth) return ''; const d=diffDays(birth,todayISO()); if(d<0) return ''; if(d<60) return d+' ημ.'; if(d<730) return Math.floor(d/30.4)+' μην.'; return fmt(d/365.25,1)+' ετών'; }
+$('aSave').onclick=()=>{
+  const herdId=$('aHerd').value, tag=$('aTag').value.trim();
+  if(!herdId){alert('Πρόσθεσε πρώτα κοπάδι (καρτέλα «Μονάδες & Κοπάδια»).');return;}
+  if(!tag){alert('Δώσε ενώτιο / αριθμό σήμανσης.');return;}
+  if(DB.animals.some(a=>a.tag===tag&&a.id!==editAnimal)){ if(!confirm('Υπάρχει ήδη ζώο με ενώτιο '+tag+'. Συνέχεια;')) return; }
+  const rec={id:editAnimal||uid(),herdId,tag,name:$('aName').value.trim(),sex:$('aSex').value,birth:$('aBirth').value||null,breed:$('aBreed').value.trim(),
+    mother:$('aMother').value.trim(),weight:parseFloat($('aWeight').value)||null,status:$('aStatus').value,notes:$('aNotes').value.trim()};
+  if(editAnimal){const i=DB.animals.findIndex(a=>a.id===editAnimal); rec.weights=DB.animals[i].weights||[]; DB.animals[i]=rec;} else rec.weights=[];
+  if(rec.weight){ const last=rec.weights[rec.weights.length-1]; if(!last||last.kg!==rec.weight) rec.weights.push({date:todayISO(),kg:rec.weight}); }
+  if(!editAnimal) DB.animals.push(rec);
+  editAnimal=null; save(); clearAnimalForm(); renderAnimals(); refreshTargets();
+};
+$('aCancel').onclick=()=>{editAnimal=null;clearAnimalForm();};
+$('aHerd').onchange=()=>{ const h=getH($('aHerd').value); if(h&&!$('aBreed').value) $('aBreed').value=h.breed||''; };
+function clearAnimalForm(){['aTag','aName','aBirth','aBreed','aMother','aWeight','aNotes'].forEach(id=>$(id).value='');$('aStatus').value='Ενεργό';$('aSex').value='F';$('aCancel').style.display='none';$('aFormTitle').textContent='🏷️ Νέο ζώο (ατομική καταγραφή)';}
+function editAnimalStart(id){ const a=getA(id); if(!a)return; editAnimal=id; $('aHerd').value=a.herdId; $('aTag').value=a.tag; $('aName').value=a.name||''; $('aSex').value=a.sex; $('aBirth').value=a.birth||'';
+  $('aBreed').value=a.breed||''; $('aMother').value=a.mother||''; $('aWeight').value=a.weight||''; $('aStatus').value=a.status; $('aNotes').value=a.notes||'';
+  $('aCancel').style.display=''; $('aFormTitle').textContent='✏️ Επεξεργασία ζώου'; window.scrollTo({top:0,behavior:'smooth'}); }
+['aSearch','aFilter','aStFilter'].forEach(id=>$(id).addEventListener(id==='aSearch'?'input':'change',renderAnimals));
+function nextBirthOfAnimal(a){ const t=todayISO(); const r=DB.repro.filter(x=>x.animalId===a.id&&!x.done&&getH(x.herdId)).map(x=>{const m=SP[getH(x.herdId).sp];return {x,due:addDays(x.date,m.gest||m.incub||0)};}).filter(o=>o.due>=addDays(t,-20)).sort((p,q)=>p.due<q.due?-1:1); return r[0]||null; }
+function renderAnimals(){
+  const q=$('aSearch').value.trim().toLowerCase(), hf=$('aFilter').value, sf=$('aStFilter').value;
+  let list=DB.animals.filter(a=>(!hf||a.herdId===hf)&&(!q||(a.tag+' '+(a.name||'')+' '+(a.breed||'')).toLowerCase().includes(q)));
+  if(sf==='active') list=list.filter(a=>!GONE.includes(a.status)); else if(sf==='gone') list=list.filter(a=>GONE.includes(a.status));
+  $('aCount').textContent=list.length+' / '+DB.animals.length;
+  if(!list.length){$('animalList').innerHTML='<div class="empty">Δεν βρέθηκαν ζώα.</div>';return;}
+  $('animalList').innerHTML=list.sort((a,b)=>a.tag<b.tag?-1:1).map(a=>{
+    const h=getH(a.herdId), m=h?SP[h.sp]:{e:'❔'}; const nb=nextBirthOfAnimal(a);
+    const wd=activeWithdrawals().filter(w=>w.target==='animal:'+a.id||(h&&w.target==='herd:'+h.id));
+    const logs=DB.logs.filter(l=>l.target==='animal:'+a.id).length;
+    return `<div class="listitem"><div class="top"><div><div class="nm">${m.e} ${esc(a.tag)}${a.name?' «'+esc(a.name)+'»':''} <span class="small">${a.sex==='F'?'♀':a.sex==='M'?'♂':'⚲'}</span></div>
+      <div class="meta">${esc(a.breed||'')}${a.birth?' · '+ageStr(a.birth)+' ('+fd(a.birth)+')':''}${a.weight?' · '+fmt(a.weight,1)+' kg':''}${a.mother?' · μητέρα '+esc(a.mother):''} · ${esc(h?(h.name||m.name):'—')}</div>
+      <div style="margin-top:4px"><span class="badge ${GONE.includes(a.status)?'bad':a.status==='Έγκυο'?'warn':'info'}">${esc(a.status)}</span>
+      ${nb?` <span class="badge warn">🍼 ${fd(nb.due)} (${diffDays(todayISO(),nb.due)>=0?'σε '+diffDays(todayISO(),nb.due)+' ημ.':'καθυστ. '+(-diffDays(todayISO(),nb.due))+' ημ.'})</span>`:''}
+      ${wd.length?` <span class="badge solid">⛔ αναμονή έως ${fd(wd[0].until)}</span>`:''}
+      ${logs?` <span class="pill">📒 ${logs}</span>`:''}</div>
+      ${a.notes?`<div class="small" style="margin-top:4px">${esc(a.notes)}</div>`:''}</div>
+      <div class="btnrow" style="margin:0;flex-direction:column"><button class="btn sec mini" data-ea="${a.id}">✏️</button>${a.sex==='F'&&h&&isMammal(h.sp)?`<button class="btn sec mini" data-ra="${a.id}" title="Οχεία">🤰</button>`:''}<button class="btn sec mini" data-la="${a.id}" title="Εργασία">📝</button><button class="btn sec mini" data-da="${a.id}">🗑️</button></div></div></div>`;
+  }).join('');
+  $('animalList').querySelectorAll('[data-ea]').forEach(b=>b.onclick=()=>editAnimalStart(b.dataset.ea));
+  $('animalList').querySelectorAll('[data-da]').forEach(b=>b.onclick=()=>{ const a=getA(b.dataset.da); if(!confirm('Διαγραφή ζώου '+a.tag+';'))return; DB.animals=DB.animals.filter(x=>x.id!==a.id); save(); renderAnimals(); refreshTargets(); });
+  $('animalList').querySelectorAll('[data-la]').forEach(b=>b.onclick=()=>{ document.querySelector('#tabs button[data-tab=agenda]').click(); $('lTarget').value='animal:'+b.dataset.la; });
+  $('animalList').querySelectorAll('[data-ra]').forEach(b=>b.onclick=()=>{ const a=getA(b.dataset.ra); document.querySelector('#tabs button[data-tab=repro]').click(); $('rHerd').value=a.herdId; fillReproAnimals(); $('rAnimal').value=a.id; $('rCount').value=1; renderReproCalc(); });
+}
+
+/* ================= AGENDA ================= */
+let editLog=null;
+$('lDate').value=todayISO();
+const WD_CATS=['Εμβολιασμός','Αποπαρασίτωση','Φαρμακευτική αγωγή','Κτηνίατρος'];
+function updWD(){
+  const cat=$('lCat').value; $('wdRow').style.display=WD_CATS.includes(cat)?'':'none';
+  const n=$('wdNote'); let msg='';
+  if(WD_CATS.includes(cat)) msg='⚠️ Τήρησε τον <b>χρόνο αναμονής</b> της ετικέτας/συνταγής (γάλα/αυγά/κρέας). Καταχώρησέ τον εδώ — ο Σύμβουλος θα σε ειδοποιεί μέχρι να λήξει. Κράτα το <b>μητρώο φαρμάκων</b> (υποχρεωτικό, Καν. ΕΕ 2019/6).';
+  if(cat==='Οχεία / Σπερματέγχυση') msg='🤰 Η καταχώρηση δημιουργεί αυτόματα αναπαραγωγικό γεγονός με αναμενόμενη ημερομηνία τοκετού.';
+  if(cat==='Θάνατος / Απώλεια') msg='📣 Τα πτώματα παραλαμβάνονται από εγκεκριμένη μονάδα ΖΥΠ (Καν. 1069/2009). Αιφνίδιοι/μαζικοί θάνατοι → ενημέρωσε τον κτηνίατρο.';
+  if(msg){n.style.display='';n.innerHTML=msg;} else n.style.display='none';
+}
+$('lCat').onchange=updWD;
+$('lSave').onclick=()=>{
+  if(!$('lTarget').value){alert('Δεν υπάρχει κοπάδι/μονάδα. Πρόσθεσε πρώτα από την καρτέλα «Μονάδες & Κοπάδια».');return;}
+  const rec={id:editLog||uid(),target:$('lTarget').value,date:$('lDate').value||todayISO(),cat:$('lCat').value,product:$('lProduct').value.trim(),qty:$('lQty').value.trim(),
+    cost:parseFloat($('lCost').value)||0,income:parseFloat($('lIncome').value)||0,wMilk:parseInt($('lWMilk').value)||0,wMeat:parseInt($('lWMeat').value)||0,notes:$('lNotes').value.trim()};
+  if(!WD_CATS.includes(rec.cat)){rec.wMilk=0;rec.wMeat=0;}
+  if(editLog){const i=DB.logs.findIndex(l=>l.id===editLog); DB.logs[i]=rec;} else {
+    DB.logs.push(rec);
+    if(rec.cat==='Οχεία / Σπερματέγχυση'){ const [k,id]=rec.target.split(':'); const herdId=k==='herd'?id:k==='animal'?(getA(id)||{}).herdId:null;
+      if(herdId&&isMammal(getH(herdId).sp)) DB.repro.push({id:uid(),herdId,animalId:k==='animal'?id:null,date:rec.date,count:parseInt(rec.qty)||1,notes:rec.product||rec.notes});
+      if(k==='animal'){ const a=getA(id); if(a) a.status='Έγκυο'; } }
+  }
+  editLog=null; save(); clearLogForm(); renderLogs();
+};
+$('lCancel').onclick=()=>{editLog=null;clearLogForm();};
+function clearLogForm(){['lProduct','lQty','lCost','lIncome','lWMilk','lWMeat','lNotes'].forEach(id=>$(id).value='');$('lDate').value=todayISO();$('lCancel').style.display='none';$('logFormTitle').textContent='📝 Νέα εργασία / εισροή / έσοδο';updWD();}
+function targetLabel(t){ if(!t) return '—'; const [k,id]=t.split(':');
+  if(k==='herd') return herdLabel(getH(id)); if(k==='animal'){const a=getA(id); return a?'🏷️ '+a.tag+(a.name?' «'+a.name+'»':''):'—';} if(k==='unit'){const u=getU(id);return u?'🏡 '+u.name:'—';} return t; }
+function logMatches(l,f){ if(!f) return true; if(l.target===f) return true; const [k,id]=f.split(':');
+  if(k==='herd'){ const [lk,lid]=l.target.split(':'); return lk==='animal'&&getA(lid)&&getA(lid).herdId===id; }
+  if(k==='unit'){ const [lk,lid]=l.target.split(':'); if(lk==='herd') return getH(lid)&&getH(lid).unitId===id; if(lk==='animal'){const a=getA(lid);const h=a&&getH(a.herdId);return h&&h.unitId===id;} }
+  return false; }
+$('agFilter').onchange=renderLogs; $('agCat').onchange=renderLogs;
+function renderLogs(){
+  const cats=[...new Set(DB.logs.map(l=>l.cat))].sort(); const cc=$('agCat').value;
+  $('agCat').innerHTML='<option value="">Όλες οι κατηγορίες</option>'+cats.map(c=>`<option>${esc(c)}</option>`).join(''); $('agCat').value=cc;
+  const f=$('agFilter').value; const list=DB.logs.filter(l=>logMatches(l,f)&&(!cc||l.cat===cc)).sort((a,b)=>a.date<b.date?1:-1);
+  const cost=list.reduce((s,l)=>s+(l.cost||0),0), inc=list.reduce((s,l)=>s+(l.income||0),0);
+  $('logSum').innerHTML=list.length?`<div class="kpi"><div class="box"><div class="v">${list.length}</div><div class="l">Καταχωρήσεις</div></div><div class="box"><div class="v">${fmt(cost,0)} €</div><div class="l">Κόστος</div></div><div class="box"><div class="v">${fmt(inc,0)} €</div><div class="l">Έσοδα</div></div><div class="box"><div class="v" style="color:${inc-cost>=0?'var(--ok)':'var(--bad)'}">${fmt(inc-cost,0)} €</div><div class="l">Καθαρό</div></div></div>`:'';
+  if(!list.length){$('logList').innerHTML='<div class="empty">Καμία καταχώρηση.</div>';return;}
+  const t=todayISO();
+  $('logList').innerHTML=list.map(l=>{
+    const wm=l.wMilk?addDays(l.date,l.wMilk):null, wt=l.wMeat?addDays(l.date,l.wMeat):null;
+    return `<div class="listitem"><div class="top"><div><div class="nm">${esc(l.cat)}${l.product?' · '+esc(l.product):''}</div>
+      <div class="meta">${fd(l.date)} · ${esc(targetLabel(l.target))}${l.qty?' · '+esc(l.qty):''}</div>
+      <div style="margin-top:3px">${l.cost?`<span class="badge bad">−${fmt(l.cost,2)} €</span> `:''}${l.income?`<span class="badge ok">+${fmt(l.income,2)} €</span> `:''}
+      ${wm?`<span class="badge ${wm>=t?'solid':'info'}">🥛 αναμονή έως ${fd(wm)}</span> `:''}${wt?`<span class="badge ${wt>=t?'solid':'info'}">🥩 αναμονή έως ${fd(wt)}</span>`:''}</div>
+      ${l.notes?`<div class="small" style="margin-top:3px">${esc(l.notes)}</div>`:''}</div>
+      <div class="btnrow" style="margin:0"><button class="btn sec mini" data-el="${l.id}">✏️</button><button class="btn sec mini" data-dl="${l.id}">🗑️</button></div></div></div>`;
+  }).join('');
+  $('logList').querySelectorAll('[data-el]').forEach(b=>b.onclick=()=>{ const l=DB.logs.find(x=>x.id===b.dataset.el); editLog=l.id;
+    $('lTarget').value=l.target; $('lDate').value=l.date; $('lCat').value=l.cat; $('lProduct').value=l.product||''; $('lQty').value=l.qty||''; $('lCost').value=l.cost||''; $('lIncome').value=l.income||'';
+    $('lWMilk').value=l.wMilk||''; $('lWMeat').value=l.wMeat||''; $('lNotes').value=l.notes||''; $('lCancel').style.display=''; $('logFormTitle').textContent='✏️ Επεξεργασία'; updWD(); window.scrollTo({top:0,behavior:'smooth'}); });
+  $('logList').querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>{ if(!confirm('Διαγραφή καταχώρησης;'))return; DB.logs=DB.logs.filter(x=>x.id!==b.dataset.dl); save(); renderLogs(); });
+}
+function activeWithdrawals(){
+  const t=todayISO(), out=[];
+  DB.logs.forEach(l=>{ const um=l.wMilk?addDays(l.date,l.wMilk):null, ut=l.wMeat?addDays(l.date,l.wMeat):null;
+    if(um&&um>=t) out.push({target:l.target,kind:'γάλακτος/αυγών',until:um,log:l});
+    if(ut&&ut>=t) out.push({target:l.target,kind:'κρέατος (σφαγή)',until:ut,log:l}); });
+  return out.sort((a,b)=>a.until<b.until?1:-1);
+}
+
+/* ================= AUTO PROGRAM ================= */
+function birthRefs(h){
+  const refs=[]; const t=todayISO(), y=new Date().getFullYear();
+  if(h.birthMonth){ [y-1,y,y+1].forEach(yy=>refs.push({d:yy+'-'+pad(h.birthMonth)+'-15',src:'κύριος μήνας τοκετών'})); }
+  DB.repro.filter(r=>r.herdId===h.id&&!r.done).forEach(r=>{ const m=SP[h.sp]; if(m.gest) refs.push({d:addDays(r.date,m.gest),src:'οχεία '+fd(r.date)}); });
+  return refs;
+}
+function doneRecently(h,title,days){ const lim=addDays(todayISO(),-(days||60));
+  return DB.logs.some(l=>l.date>=lim&&logMatches(l,'herd:'+h.id)&&(l.notes||'').includes(title)); }
+function autoProgram(h){
+  const m=SP[h.sp]; if(!m) return [];
+  const out=[], t=todayISO(), mo=new Date().getMonth()+1, next=mo%12+1;
+  const items=(CAL._common||[]).concat(CAL[m.grp]||[]);
+  const catMap={'Εμβολιασμός':'Εμβολιασμός','Αποπαρασίτωση':'Αποπαρασίτωση','Διατροφή':'Ζωοτροφές','Αναπαραγωγή':'Άλλο','Διαχείριση':'Άλλο','Υγιεινή':'Καθαρισμός / Απολύμανση','Διοικητικά':'Διοικητικά'};
+  items.forEach(it=>{
+    if(it.m){
+      const all=it.m.length===12;
+      if(it.m.includes(mo)) out.push({p:all?3:(/Εμβολ|Αποπαρ/.test(it.cat)?1:2),when:all?'Συνεχώς':'Αυτόν τον μήνα',it});
+      else if(it.m.includes(next)) out.push({p:3,when:'Επόμενος μήνας ('+MONTHS[next-1]+')',it});
+    } else if(it.rel!=null){
+      let best=null;
+      birthRefs(h).forEach(r=>{ const d=addDays(r.d,it.rel); const dd=diffDays(t,d); if(dd>=-10&&dd<=60&&(!best||Math.abs(dd)<Math.abs(best.dd))) best={d,dd,src:r.src}; });
+      if(best) out.push({p:best.dd<=7?0:best.dd<=21?1:2,when:(best.dd<0?'Καθυστέρηση '+(-best.dd)+' ημ.':best.dd===0?'ΣΗΜΕΡΑ':'σε '+best.dd+' ημ.')+' ('+fd(best.d)+') · βάσει '+best.src,it,date:best.d});
+    }
+  });
+  // καιρός
+  const days=weatherOfHerd(h);
+  if(days&&h.sp!=='bees'){ const hr=heatRisk(h.sp,days);
+    if(hr&&hr.worst>=1) out.push({p:hr.worst>=2?0:1,when:'Επόμενες 7 ημέρες',it:{cat:'Διαχείριση',t:'Θερμικό στρες: '+LVL[hr.worst]+' ('+(hr.mode==='thi'?'THI ':'')+fmt(hr.peak,0)+(hr.mode==='thi'?'':'°C')+' στις '+fd(hr.peakDay)+')',
+      d:'Σκίαση, αερισμός/ανεμιστήρες, καθαρό δροσερό νερό ('+fmt(waterPerHead(h.sp,Math.max(...hr.fut.map(d=>d.tmax))),m.water&&m.water[1]<2?2:0)+' L/ζώο/ημ.), τάισμα & μετακινήσεις τις δροσερές ώρες.'+(hr.milkLoss>0?' Εκτιμώμενη απώλεια γάλακτος ~'+fmt(hr.milkLoss,1)+' kg/αγελάδα/ημ.':'')}});
+    if(hr&&hr.cold) out.push({p:1,when:'Επόμενες 7 ημέρες',it:{cat:'Διαχείριση',t:'Παγετός ('+fmt(hr.minT,0)+'°C)',d:'Προστασία νεογέννητων (άχυρο, ανεμοφράκτες), έλεγχος να μην παγώνουν ποτίστρες/σωληνώσεις, +10–20% ενέργεια στο σιτηρέσιο.'}});
+  }
+  // FAMACHA
+  if(m.famacha&&mo>=5&&mo<=10) out.push({p:2,when:'Κάθε 2–3 εβδομάδες',it:{cat:'Αποπαρασίτωση',t:'Έλεγχος FAMACHA©',d:'Βαθμολόγηση βλεφαρικού επιπεφυκότα — θεραπεία μόνο στα ζώα με 4–5 (καρτέλα 📷).'}});
+  // πουλερικά ηλικία
+  if(h.sp==='broiler'&&h.hatch){ const day=diffDays(h.hatch,t); if(day>=0&&day<=60){ const temp=Math.max(21,33-day/7*2.5);
+    out.push({p:day>=m.prod.days-3?0:2,when:'Ημέρα '+day,it:{cat:'Διαχείριση',t:'Θερμοκρασία θαλάμου ~'+fmt(temp,0)+'°C'+(day>=m.prod.days-3?' · ΠΡΟΕΤΟΙΜΑΣΙΑ ΣΦΑΓΗΣ':''),d:'Εκτ. βάρος '+fmt(broilerW(day,m.prod.finalBw),2)+' kg. Νηστεία τροφής 8–12 ώρες πριν τη φόρτωση· τήρηση χρόνων αναμονής.'}}); } }
+  if(h.sp==='layer'&&h.hatch){ const w=diffDays(h.hatch,t)/7; if(w>=16&&w<(m.layStart||19)) out.push({p:1,when:fmt(w,0)+' εβδ.',it:{cat:'Διατροφή',t:'Μετάβαση σε τροφή ωοτοκίας & φωλιές',d:'Τροφή ωοτοκίας με ~3,5–4% Ca, σταδιακή αύξηση φωτός σε 16 ώρες.'}});
+    if(w>=72) out.push({p:2,when:fmt(w,0)+' εβδ.',it:{cat:'Διαχείριση',t:'Αξιολόγηση ανανέωσης σμήνους',d:'Μετά τις 72 εβδ. η ωοτοκία πέφτει κάτω από ~75% και χειροτερεύει το κέλυφος.'}}); }
+  // απόθεμα ζωοτροφών
+  const cov=feedCoverage(); if(cov&&cov.days<21&&h.sp!=='bees') out.push({p:cov.days<10?0:1,when:'Απόθεμα',it:{cat:'Διατροφή',t:'Χαμηλό απόθεμα ζωοτροφών (~'+fmt(cov.days,0)+' ημέρες)',d:'Παράγγειλε έγκαιρα — ανάγκη ~'+fmt(cov.daily,0)+' kg/ημέρα για όλα τα κοπάδια.'}});
+  out.forEach(o=>{ o.done=doneRecently(h,o.it.t); if(o.done) o.p=3; o.logCat=catMap[o.it.cat]||'Άλλο'; });
+  return out.sort((a,b)=>a.p-b.p);
+}
+$('progHerd').onchange=()=>renderProgram();
+$('progAll').onclick=()=>renderProgram(true);
+$('progFetch').onclick=async()=>{ $('progFetch').textContent='⏳…'; await refreshAllWeather(); $('progFetch').textContent='🌦️ Ανανέωση καιρού & συστάσεων'; renderProgram(); };
+function renderProgram(all){
+  const hs=all?DB.herds:DB.herds.filter(h=>h.id===$('progHerd').value);
+  if(!hs.length){$('progBox').innerHTML='<div class="empty">Πρόσθεσε κοπάδι στην καρτέλα «Μονάδες & Κοπάδια».</div>';return;}
+  const PL=['ΕΠΕΙΓΟΝ','Σύντομα','Προγραμματισμός','Πληροφορία'], PC=['bad','warn','info','ok'];
+  $('progBox').innerHTML=hs.map(h=>{ const items=autoProgram(h);
+    return `<div class="card"><h2>${esc(herdLabel(h))}</h2>${items.length?items.map(o=>`<div class="prog p${o.p} ${o.done?'done':''}"><div class="h"><div class="lft"><span class="badge ${PC[o.p]}">${o.done?'✅ Έγινε':PL[o.p]}</span><span class="pill">${esc(o.it.cat)}</span>${esc(o.it.t)}</div>
+      <button class="btn sec mini" data-add="${encodeURIComponent(JSON.stringify({h:h.id,cat:o.logCat,product:o.it.t,notes:o.it.t}))}">➕ Ημερολόγιο</button></div>
+      <div class="why">🕒 ${esc(o.when)} — ${esc(o.it.d)}</div></div>`).join(''):'<div class="empty">Καμία σύσταση για την περίοδο.</div>'}</div>`; }).join('')+
+    '<div class="note warn">💉 Εμβόλια, ανθελμινθικά & φάρμακα χορηγούνται <b>μόνο με συνταγή/οδηγία κτηνιάτρου</b>. Το πρόγραμμα είναι ενδεικτικό υπενθυμιστικό.</div>';
+  $('progBox').querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addToAgenda(JSON.parse(decodeURIComponent(b.dataset.add))));
+}
+function addToAgenda(o){
+  document.querySelector('#tabs button[data-tab=agenda]').click();
+  $('lTarget').value='herd:'+o.h; $('lDate').value=todayISO(); $('lCat').value=o.cat; $('lProduct').value=o.product||''; $('lNotes').value='Από πρόγραμμα ΤΝ: '+(o.notes||'');
+  updWD(); window.scrollTo({top:0,behavior:'smooth'});
+  $('lProduct').style.transition='background .3s'; $('lProduct').style.background='rgba(228,34,47,.15)'; setTimeout(()=>$('lProduct').style.background='',900);
+}
+
+/* ================= REPRODUCTION & PRODUCTION ================= */
+$('rDate').value=todayISO();
+$('rHerd').onchange=()=>{fillReproAnimals(); renderReproCalc();};
+$('rDate').onchange=renderReproCalc; $('rAnimal').onchange=renderReproCalc;
+function fillReproAnimals(){ const hid=$('rHerd').value; const as=DB.animals.filter(a=>a.herdId===hid&&a.sex==='F'&&!GONE.includes(a.status));
+  $('rAnimal').innerHTML='<option value="">— ομαδική καταγραφή —</option>'+as.map(a=>`<option value="${a.id}">🏷️ ${esc(a.tag)}${a.name?' «'+esc(a.name)+'»':''}</option>`).join(''); }
+function renderReproCalc(){
+  const h=getH($('rHerd').value); if(!h){$('rCalc').innerHTML='<div class="empty">Πρόσθεσε κοπάδι θηλαστικών ή πουλερικών.</div>';return;}
+  const m=SP[h.sp], bird=isBird(h.sp);
+  $('rDateLbl').textContent=bird?'Ημ. τοποθέτησης αυγών στην επώαση':'Ημ. οχείας / σπερματέγχυσης';
+  $('rCountLbl').textContent=bird?'Αριθμός αυγών':'Αριθμός ζώων';
+  $('rAnimal').disabled=bird;
+  const ds=reproDates(h.sp,$('rDate').value||todayISO()); const t=todayISO();
+  $('rCalc').innerHTML=`<div class="note info">${m.e} <b>${esc(m.name)}</b> — ${bird?'επώαση '+m.incub+' ημέρες (37,5–37,8°C, υγρασία 50–55% → 65–70% στο lockdown)':'κύηση ~'+m.gest+' ημέρες'+(m.cycle?' · οιστρικός κύκλος '+m.cycle+' ημ.':'')}</div>
+    <table>${ds.map(o=>`<tr><td>${o.t}</td><td class="num"><b>${fd(o.d)}</b></td><td class="num small">${diffDays(t,o.d)>=0?'σε '+diffDays(t,o.d)+' ημ.':'πριν '+(-diffDays(t,o.d))+' ημ.'}</td></tr>`).join('')}</table>`;
+}
+$('rSave').onclick=()=>{ const h=getH($('rHerd').value); if(!h){alert('Επίλεξε κοπάδι.');return;}
+  const rec={id:uid(),herdId:h.id,animalId:$('rAnimal').value||null,date:$('rDate').value||todayISO(),count:parseInt($('rCount').value)||1,notes:$('rNotes').value.trim()};
+  DB.repro.push(rec); if(rec.animalId){const a=getA(rec.animalId); if(a) a.status='Έγκυο';}
+  DB.logs.push({id:uid(),target:rec.animalId?'animal:'+rec.animalId:'herd:'+h.id,date:rec.date,cat:isBird(h.sp)?'Τοκετός / Εκκόλαψη':'Οχεία / Σπερματέγχυση',product:isBird(h.sp)?'Επώαση αυγών':'Οχεία',qty:String(rec.count),cost:0,income:0,notes:rec.notes});
+  save(); $('rNotes').value=''; renderBirths(); renderReproKpi(); alert('✅ Καταχωρήθηκε. Αναμενόμενη ημερομηνία: '+fd(reproDates(h.sp,rec.date).find(o=>o.k==='due').d)); };
+function birthsUpcoming(){
+  const t=todayISO();
+  return DB.repro.filter(r=>!r.done&&getH(r.herdId)).map(r=>{ const h=getH(r.herdId), m=SP[h.sp]; const due=addDays(r.date,m.gest||m.incub||0); return {r,h,m,due,dd:diffDays(t,due)}; })
+    .sort((a,b)=>a.due<b.due?-1:1);
+}
+function renderBirths(){
+  const list=birthsUpcoming();
+  if(!list.length){$('birthList').innerHTML='<div class="empty">Καμία ενεργή κύηση/επώαση. Καταχώρησε οχεία από πάνω ή από το Ημερολόγιο.</div>';return;}
+  $('birthList').innerHTML=list.map(o=>{ const a=o.r.animalId?getA(o.r.animalId):null; const cls=o.dd<0?'bad':o.dd<=7?'warn':'info';
+    const prog=Math.min(100,Math.max(0,Math.round(diffDays(o.r.date,todayISO())/(o.m.gest||o.m.incub)*100)));
+    return `<div class="listitem"><div class="top"><div><div class="nm">${o.m.e} ${a?'🏷️ '+esc(a.tag):esc(o.h.name||o.m.name)} · ${o.r.count} ${isBird(o.h.sp)?'αυγά':'ζώα'}</div>
+      <div class="meta">${isBird(o.h.sp)?'Επώαση':'Οχεία'} ${fd(o.r.date)} → <b>${fd(o.due)}</b> ${o.r.notes?'· '+esc(o.r.notes):''}</div>
+      <div class="meter ${o.dd<=7?'warn':''}"><i style="width:${prog}%"></i></div>
+      <span class="badge ${cls}">${o.dd<0?'Καθυστέρηση '+(-o.dd)+' ημ.':o.dd===0?'ΣΗΜΕΡΑ':'σε '+o.dd+' ημ.'}</span></div>
+      <div class="btnrow" style="margin:0;flex-direction:column"><button class="btn mini" data-bd="${o.r.id}">✅ Ολοκληρώθηκε</button><button class="btn sec mini" data-bx="${o.r.id}">🗑️</button></div></div></div>`; }).join('');
+  $('birthList').querySelectorAll('[data-bd]').forEach(b=>b.onclick=()=>{ const r=DB.repro.find(x=>x.id===b.dataset.bd); const h=getH(r.herdId);
+    const n=prompt(isBird(h.sp)?'Πόσοι νεοσσοί εκκολάφθηκαν;':'Πόσα νεογέννητα γεννήθηκαν ζωντανά;', isBird(h.sp)?Math.round(r.count*0.8):(SP[h.sp].prod.young?Math.round(r.count*SP[h.sp].prod.young):r.count));
+    if(n===null) return; r.done=true; r.born=parseInt(n)||0;
+    DB.logs.push({id:uid(),target:r.animalId?'animal:'+r.animalId:'herd:'+h.id,date:todayISO(),cat:'Τοκετός / Εκκόλαψη',product:isBird(h.sp)?'Εκκόλαψη':'Τοκετός',qty:String(r.born),cost:0,income:0,notes:'Από '+(isBird(h.sp)?'επώαση ':'οχεία ')+fd(r.date)+' ('+r.count+')'});
+    if(r.animalId){const a=getA(r.animalId); if(a) a.status=SP[h.sp].prod.type==='milk'?'Σε γαλακτοπαραγωγή':'Ενεργό';}
+    save(); renderBirths(); renderReproKpi(); });
+  $('birthList').querySelectorAll('[data-bx]').forEach(b=>b.onclick=()=>{ if(!confirm('Διαγραφή;'))return; DB.repro=DB.repro.filter(x=>x.id!==b.dataset.bx); save(); renderBirths(); });
+}
+function renderProd(){
+  if(!DB.herds.length){$('prodBox').innerHTML='<div class="empty">Πρόσθεσε κοπάδια.</div>';return;}
+  let tot=0;
+  $('prodBox').innerHTML=DB.herds.map(h=>{ const r=prodForecast(h); tot+=r.revenue;
+    return `<div class="listitem"><div class="nm">${esc(herdLabel(h))}</div><table>${r.lines.map(l=>`<tr><td>${l[0]}</td><td class="num"><b>${l[1]}</b></td></tr>`).join('')}
+      ${r.revenue?`<tr><td>💶 Εκτ. έσοδα ${SP[h.sp].prod.type==='broiler'?'παρτίδας':'έτους'}</td><td class="num"><b>${fmt(r.revenue,0)} €</b></td></tr>`:`<tr><td colspan="2" class="small">Δώσε «Τιμή πώλησης» στο κοπάδι για εκτίμηση εσόδων.</td></tr>`}</table></div>`; }).join('')+
+    (tot?`<div class="note ok"><b>Σύνολο εκτιμώμενων εσόδων παραγωγής: ${fmt(tot,0)} €</b> (προ κόστους)</div>`:'');
+}
+function renderReproKpi(){
+  const done=DB.repro.filter(r=>r.done), mam=done.filter(r=>getH(r.herdId)&&isMammal(getH(r.herdId).sp)), bird=done.filter(r=>getH(r.herdId)&&isBird(getH(r.herdId).sp));
+  const y=new Date().getFullYear()+'-01-01';
+  const born=DB.logs.filter(l=>l.cat==='Τοκετός / Εκκόλαψη'&&l.date>=y).reduce((s,l)=>s+(parseInt(l.qty)||0),0);
+  const deaths=DB.logs.filter(l=>l.cat==='Θάνατος / Απώλεια'&&l.date>=y).reduce((s,l)=>s+(parseInt(l.qty)||1),0);
+  const prolif=mam.length?mam.reduce((s,r)=>s+(r.born||0),0)/mam.reduce((s,r)=>s+r.count,0):null;
+  const hatchR=bird.length?bird.reduce((s,r)=>s+(r.born||0),0)/bird.reduce((s,r)=>s+r.count,0):null;
+  $('reproKpi').innerHTML=`<div class="kpi"><div class="box"><div class="v">${DB.repro.filter(r=>!r.done).length}</div><div class="l">Ενεργές κυήσεις/επωάσεις</div></div>
+    <div class="box"><div class="v">${fmt(born,0)}</div><div class="l">Γεννήσεις/εκκολ. φέτος</div></div>
+    <div class="box"><div class="v">${prolif!=null?fmt(prolif,2):'—'}</div><div class="l">Νεογέννητα / τοκετό</div></div>
+    <div class="box"><div class="v">${hatchR!=null?fmt(hatchR*100,0)+'%':'—'}</div><div class="l">Εκκολαψιμότητα</div></div>
+    <div class="box"><div class="v">${fmt(deaths,0)}</div><div class="l">Απώλειες φέτος</div></div></div>
+    <div class="hint">Στόχοι: αιγοπρόβατα πολυδυμία 1,3–1,8 (Χιώτικο/Λακόν έως 2)· εκκολαψιμότητα γόνιμων αυγών &gt;80%· θνησιμότητα νεογέννητων &lt;10%.</div>`;
+}
+
+/* ================= HEALTH: HEAT, WATER, FEED, RATION, SYMPTOMS ================= */
+$('hsHerd').onchange=renderHeat;
+$('hsFetch').onclick=async()=>{ const h=getH($('hsHerd').value); if(!h)return; $('hsFetch').textContent='⏳…'; await ensureWeather(getU(h.unitId),true); $('hsFetch').textContent='🌦️ Ανανέωση'; renderHeat(); };
+function renderHeat(){
+  const h=getH($('hsHerd').value); if(!h){$('heatBox').innerHTML='<div class="empty">Πρόσθεσε κοπάδι.</div>';return;}
+  const m=SP[h.sp], days=weatherOfHerd(h), hs=m.heat;
+  let html=`<div class="small">${m.e} <b>${esc(m.name)}</b> — κατώφλια ${hs.mode==='thi'?'THI':'θερμοκρασίας (°C)'}: ήπιο ≥${hs.mild} · μέτριο ≥${hs.mod} · σοβαρό ≥${hs.sev}</div>`;
+  if(!days){ html+='<div class="note info">Δεν υπάρχει καιρός για τη μονάδα. Βάλε GPS στη μονάδα &amp; πάτησε «Ανανέωση» ή χρησιμοποίησε τον χειροκίνητο καιρό στον Σύμβουλο.</div>'; $('heatBox').innerHTML=html; return; }
+  const hr=heatRisk(h.sp,days);
+  if(hr){
+    html+=`<div class="weatherrow" style="grid-template-columns:repeat(${hr.fut.length},minmax(52px,1fr));margin-top:8px">`+hr.fut.map(d=>{ const s=dayStress(h.sp,d); const dd=new Date(d.date+'T12:00:00');
+      return `<div class="wday l${s.lvl}"><div class="d">${['Κυ','Δε','Τρ','Τε','Πε','Πα','Σα'][dd.getDay()]} ${dd.getDate()}/${dd.getMonth()+1}</div><div class="t">${Math.round(d.tmax)}°</div><div class="small">${Math.round(d.tmin)}° · ${d.rh!=null?Math.round(d.rh)+'%':''}</div><div><b>${hs.mode==='thi'?'THI '+Math.round(s.v):''}</b></div></div>`; }).join('')+'</div>';
+    html+=`<div class="note ${LVLC[hr.worst]}" style="margin-top:8px"><b>Χειρότερη ημέρα: ${LVL[hr.worst]}</b> (${hs.mode==='thi'?'THI ':''}${fmt(hr.peak,0)}${hs.mode==='thi'?'':'°C'} στις ${fd(hr.peakDay)}) · ${hr.nDays}/7 ημέρες με στρες.${hr.milkLoss>0?`<br>🥛 Εκτιμώμενη απώλεια γάλακτος: <b>~${fmt(hr.milkLoss,1)} kg/αγελάδα/ημ.</b> → ${fmt(hr.milkLoss*(h.females||h.count),0)} kg/ημ. για το κοπάδι.`:''}</div>`;
+    if(hr.worst>=1) html+=`<div class="small">${heatTips(m.grp)}</div>`;
+    if(hr.cold) html+=`<div class="note info">❄️ ${hr.cold} ημέρες με παγετό (ελάχ. ${fmt(hr.minT,0)}°C) — προστασία νεογέννητων & ποτιστρών.</div>`;
+  }
+  const tmx=Math.max(...(hr?hr.fut:days.slice(-3)).map(d=>d.tmax));
+  if(h.sp!=='bees'){ const w=waterPerHead(h.sp,tmx);
+    html+=`<table style="margin-top:8px"><tr><td>💧 Νερό/ζώο/ημέρα (σε ${Math.round(tmx)}°C)</td><td class="num"><b>${fmt(w,w<2?2:0)} L</b></td></tr><tr><td>💧 Νερό κοπαδιού/ημέρα</td><td class="num"><b>${fmt(w*h.count,0)} L</b></td></tr></table>`; }
+  $('heatBox').innerHTML=html;
+}
+function heatTips(g){ return ({cattle:'Σκίαση ≥4 m²/ζώο, ανεμιστήρες + καταιονισμός, 10 cm μέτωπο ποτίστρας/ζώο, ρυθμιστικά & ηλεκτρολύτες, άμελξη/τάισμα νωρίς-αργά.',
+  smallrum:'Βοσκή πρωί/βράδυ, σκιά & δροσερό νερό, όχι κούρεμα/μετακινήσεις στον καύσωνα.',pig:'Υδρονέφωση/ντους σταγόνων, μειωμένη πυκνότητα, τάισμα τη νύχτα.',
+  poultry:'Αερισμός τούνελ/δροσιστικές κυψέλες, ηλεκτρολύτες + βιτ. C, διακοπή τροφής στις ζεστές ώρες, μείωση πυκνότητας.',rabbit:'Σκιά, αερισμός, παγωμένα μπουκάλια νερού στα κλουβιά.',
+  equine:'Όχι εργασία στις ζεστές ώρες, αλάτι/ηλεκτρολύτες, σκιά & νερό ad lib.',bees:'Νερό κοντά στο μελισσοκομείο, σκίαση κυψελών, αερισμός.'})[g]||''; }
+function feedCoverage(){
+  const daily=DB.herds.reduce((s,h)=>s+feedNeed(h).fromStock,0); const stock=DB.feeds.reduce((s,f)=>s+(f.kg||0),0);
+  if(!daily||!DB.feeds.length) return null; return {daily,stock,days:stock/daily};
+}
+$('fName').innerHTML=FEEDS.map(f=>`<option>${esc(f.n)}</option>`).join('');
+$('fSave').onclick=()=>{ const n=$('fName').value, kg=parseFloat($('fKg').value); if(isNaN(kg)){alert('Δώσε απόθεμα σε kg.');return;}
+  const ex=DB.feeds.find(f=>f.name===n); const price=parseFloat($('fPrice').value);
+  if(ex){ ex.kg=kg; if(!isNaN(price)) ex.price=price; } else DB.feeds.push({id:uid(),name:n,kg,price:isNaN(price)?null:price});
+  save(); $('fKg').value=''; $('fPrice').value=''; renderFeed(); };
+function renderFeed(){
+  const rows=DB.herds.map(h=>({h,f:feedNeed(h)})).filter(o=>o.f.asFed>0);
+  const tot=rows.reduce((s,o)=>s+o.f.fromStock,0);
+  $('feedNeed').innerHTML=rows.length?`<div class="tblwrap"><table><tr><th>Κοπάδι</th><th class="num">ΞΟ kg/ημ.</th><th class="num">Σύνολο τροφής kg/ημ.</th><th class="num">Από αποθήκη*</th></tr>`+
+    rows.map(o=>`<tr><td>${esc(herdLabel(o.h))}</td><td class="num">${fmt(o.f.dm,0)}</td><td class="num">${fmt(o.f.asFed,0)}</td><td class="num">${fmt(o.f.fromStock,0)}</td></tr>`).join('')+
+    `<tr><td><b>Σύνολο</b></td><td></td><td></td><td class="num"><b>${fmt(tot,0)} kg</b></td></tr></table></div><div class="hint" style="margin-top:4px">* Αφαιρείται η εκτιμώμενη βοσκή ανά σύστημα (εκτατικό ~65%, ημιεντατικό ~30%). ΞΟ = ξηρά ουσία (NRC).</div>`:'<div class="empty">Πρόσθεσε κοπάδια για υπολογισμό αναγκών.</div>';
+  const cov=feedCoverage();
+  $('feedStock').innerHTML=DB.feeds.length?`<table><tr><th>Ζωοτροφή</th><th class="num">Απόθεμα</th><th class="num">Αξία</th><th></th></tr>`+DB.feeds.map(f=>`<tr><td>${esc(f.name)}</td><td class="num">${fmt(f.kg,0)} kg</td><td class="num">${f.price?fmt(f.kg*f.price,0)+' €':'—'}</td><td class="num"><button class="btn sec mini" data-df="${f.id}">🗑️</button></td></tr>`).join('')+'</table>'+
+    (cov?`<div class="note ${cov.days<10?'bad':cov.days<21?'warn':'ok'}">Κάλυψη αποθέματος: <b>~${fmt(cov.days,0)} ημέρες</b> (${fmt(cov.stock,0)} kg / ${fmt(cov.daily,0)} kg/ημ.)</div>`:''):'<div class="small">Δεν έχει καταχωρηθεί απόθεμα.</div>';
+  $('feedStock').querySelectorAll('[data-df]').forEach(b=>b.onclick=()=>{ DB.feeds=DB.feeds.filter(f=>f.id!==b.dataset.df); save(); renderFeed(); });
+}
+// Σιτηρέσιο
+let RA=[{f:0,kg:1.5},{f:8,kg:0.8}];
+(function(){ const s=$('raSp'); const ks=Object.keys(SP).filter(k=>SP[k].dmi); s.innerHTML=ks.map(k=>`<option value="${k}">${SP[k].e} ${esc(SP[k].name)}</option>`).join(''); s.value='sheep'; $('raBw').value=SP.sheep.bw; })();
+$('raSp').onchange=()=>{ $('raBw').value=SP[$('raSp').value].bw; const big=SP[$('raSp').value].bw>200; RA=big?[{f:0,kg:6},{f:4,kg:15},{f:7,kg:4},{f:12,kg:2}]:[{f:0,kg:1.5},{f:8,kg:0.8}]; renderRation(); };
+$('raStage').onchange=renderRation; $('raBw').oninput=renderRationOut;
+$('raAdd').onclick=()=>{ RA.push({f:9,kg:0.3}); renderRation(); };
+function renderRation(){
+  $('raRows').innerHTML=RA.map((r,i)=>`<div class="ration-row"><select data-rf="${i}">${FEEDS.map((f,j)=>`<option value="${j}" ${j===r.f?'selected':''}>${esc(f.n)}</option>`).join('')}</select><input type="number" step="0.1" data-rk="${i}" value="${r.kg}"><button class="btn sec mini" data-rx="${i}">✕</button></div>`).join('');
+  $('raRows').querySelectorAll('[data-rf]').forEach(s=>s.onchange=()=>{RA[+s.dataset.rf].f=+s.value; renderRationOut();});
+  $('raRows').querySelectorAll('[data-rk]').forEach(s=>s.oninput=()=>{RA[+s.dataset.rk].kg=parseFloat(s.value)||0; renderRationOut();});
+  $('raRows').querySelectorAll('[data-rx]').forEach(s=>s.onclick=()=>{RA.splice(+s.dataset.rx,1); renderRation();});
+  renderRationOut();
+}
+function renderRationOut(){
+  const m=SP[$('raSp').value], st=$('raStage').value, bw=parseFloat($('raBw').value)||m.bw;
+  const k={prod:{dmi:1,cp:0,ufl:1},late:{dmi:0.8,cp:-2,ufl:0.85},maint:{dmi:0.7,cp:-4,ufl:0.75}}[st];
+  const tDmi=bw*m.dmi/100*k.dmi, tCp=[m.cp[0]+k.cp,m.cp[1]+k.cp], tUfl=m.ufl*k.ufl;
+  let dm=0,cp=0,ufl=0,forage=0,cost=0;
+  RA.forEach(r=>{ const f=FEEDS[r.f]; const d=r.kg*f.dm/100; dm+=d; cp+=d*f.cp/100; ufl+=d*f.ufl; if(f.k==='χονδρ.') forage+=d;
+    const st=DB.feeds.find(x=>x.name===f.n); if(st&&st.price) cost+=r.kg*st.price; });
+  const cpP=dm?cp/dm*100:0, uflD=dm?ufl/dm:0, forP=dm?forage/dm*100:0;
+  const st1=v=>v?'ok':'warn';
+  const dOk=dm>=tDmi*0.92&&dm<=tDmi*1.1, cOk=cpP>=tCp[0]-0.5&&cpP<=tCp[1]+1.5, uOk=uflD>=tUfl*0.95, fOk=forP>=(m.grp==='equine'?60:40);
+  $('raOut').innerHTML=`<table>
+    <tr><th>Δείκτης</th><th class="num">Σιτηρέσιο</th><th class="num">Στόχος</th><th></th></tr>
+    <tr><td>Ξηρά ουσία (kg/ημ.)</td><td class="num">${fmt(dm,2)}</td><td class="num">${fmt(tDmi,2)}</td><td><span class="badge ${st1(dOk)}">${dOk?'OK':dm<tDmi?'Λίγη':'Πολλή'}</span></td></tr>
+    <tr><td>Πρωτεΐνη (% ΞΟ)</td><td class="num">${fmt(cpP,1)}%</td><td class="num">${tCp[0]}–${tCp[1]}%</td><td><span class="badge ${st1(cOk)}">${cOk?'OK':cpP<tCp[0]?'Χαμηλή':'Υψηλή'}</span></td></tr>
+    <tr><td>Ενέργεια (UFL/kg ΞΟ)</td><td class="num">${fmt(uflD,2)}</td><td class="num">≥${fmt(tUfl,2)}</td><td><span class="badge ${st1(uOk)}">${uOk?'OK':'Χαμηλή'}</span></td></tr>
+    <tr><td>Χονδροειδή (% ΞΟ)</td><td class="num">${fmt(forP,0)}%</td><td class="num">≥${m.grp==='equine'?60:40}%</td><td><span class="badge ${st1(fOk)}">${fOk?'OK':'Κίνδυνος οξέωσης'}</span></td></tr>
+    ${cost?`<tr><td>Κόστος/ζώο/ημ.</td><td class="num">${fmt(cost,2)} €</td><td></td><td></td></tr>`:''}</table>
+    <div class="hint" style="margin-top:6px">Ενδεικτικές τιμές INRA/NRC. Για ακριβές σιτηρέσιο (αμινοξέα, Ca/P, ιχνοστοιχεία) — ζωοτεχνικός/διατροφολόγος. Το κόστος χρησιμοποιεί τις τιμές του αποθέματος.</div>`;
+}
+// Συμπτώματα
+(function(){ $('syGrp').innerHTML=Object.entries(GRP).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join(''); })();
+$('syGrp').onchange=renderSymptoms; $('syClear').onclick=()=>{ $('symGrid').querySelectorAll('input').forEach(i=>i.checked=false); renderSymOut(); };
+function renderSymptoms(){
+  const g=$('syGrp').value; const used=new Set(); DISEASES.filter(d=>d.grp.includes(g)).forEach(d=>d.s.forEach(s=>used.add(s)));
+  $('symGrid').innerHTML=Object.entries(SYMPTOMS).filter(([k])=>used.has(k)).map(([k,v])=>`<label><input type="checkbox" value="${k}"> ${esc(v)}</label>`).join('');
+  $('symGrid').querySelectorAll('input').forEach(i=>i.onchange=()=>{ i.parentElement.classList.toggle('on',i.checked); renderSymOut(); });
+  renderSymOut();
+}
+function renderSymOut(){
+  const g=$('syGrp').value, sel=[...$('symGrid').querySelectorAll('input:checked')].map(i=>i.value);
+  if(!sel.length){$('syOut').innerHTML='<div class="empty">Επίλεξε τα συμπτώματα που παρατηρείς.</div>';return;}
+  const res=DISEASES.filter(d=>d.grp.includes(g)).map(d=>{ const hit=d.s.filter(s=>sel.includes(s)).length; return {d,hit,score:hit/d.s.length*0.5+hit/sel.length*0.5}; })
+    .filter(o=>o.hit>0).sort((a,b)=>b.score-a.score||b.d.urg-a.d.urg).slice(0,8);
+  const U=['','Παρακολούθηση','Κτηνίατρος σύντομα','ΕΠΕΙΓΟΝ'], UC=['','ok','warn','bad'];
+  const anyNotif=res.slice(0,4).some(o=>o.d.notif);
+  $('syOut').innerHTML=(anyNotif?'<div class="note bad">📣 <b>Πιθανό νόσημα υποχρεωτικής δήλωσης!</b> Απομόνωσε τα ζώα, σταμάτα κάθε μετακίνηση και ειδοποίησε <b>άμεσα</b> τον κτηνίατρο &amp; την Κτηνιατρική Υπηρεσία (ΔΑΟΚ) της Περιφέρειας.</div>':'')+
+    res.map(o=>`<div class="prog p${3-o.d.urg}"><div class="h"><div class="lft"><b>${esc(o.d.n)}</b>${o.d.notif?'<span class="badge solid">📣 Υποχρ. δήλωση</span>':''}${o.d.zoo?'<span class="badge warn">⚠️ Ζωονόσος</span>':''}</div>
+      <span class="badge ${UC[o.d.urg]}">${U[o.d.urg]} · ${Math.round(o.score*100)}%</span></div>
+      <div class="why">${esc(o.d.d)}<br><b>➜ ${esc(o.d.a)}</b></div></div>`).join('');
+}
+
+/* ================= VISION: FAMACHA ================= */
+const dz=$('dropzone'), fi=$('fileInput'), fc=$('famCanvas'); let famImg=null;
+dz.onclick=()=>fi.click();
+dz.ondragover=e=>{e.preventDefault();dz.classList.add('drag');};
+dz.ondragleave=()=>dz.classList.remove('drag');
+dz.ondrop=e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])loadFam(e.dataTransfer.files[0]);};
+fi.onchange=()=>{if(fi.files[0])loadFam(fi.files[0]);};
+function loadFam(file){ const img=new Image(); img.onload=()=>{ famImg=img; const sc=Math.min(1,700/img.width); fc.width=img.width*sc; fc.height=img.height*sc;
+  fc.getContext('2d').drawImage(img,0,0,fc.width,fc.height); fc.style.display='block'; URL.revokeObjectURL(img.src);
+  $('famResult').innerHTML='<div class="note info">👆 Κάνε κλικ πάνω στον ροζ/κόκκινο βλεφαρικό επιπεφυκότα για μέτρηση.</div>'; }; img.src=URL.createObjectURL(file); }
+fc.onclick=e=>{
+  const r=fc.getBoundingClientRect(); const x=Math.round((e.clientX-r.left)*fc.width/r.width), y=Math.round((e.clientY-r.top)*fc.height/r.height);
+  const ctx=fc.getContext('2d'); ctx.drawImage(famImg,0,0,fc.width,fc.height);
+  const R=Math.max(4,Math.round(fc.width/90)); const d=ctx.getImageData(Math.max(0,x-R),Math.max(0,y-R),2*R,2*R).data;
+  let rs=0,gs=0,bs=0,n=0; for(let i=0;i<d.length;i+=4){ const br=d[i]+d[i+1]+d[i+2]; if(br<40||br>735) continue; rs+=d[i];gs+=d[i+1];bs+=d[i+2];n++; }
+  ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,R+2,0,7); ctx.stroke(); ctx.strokeStyle='#000'; ctx.beginPath(); ctx.arc(x,y,R+4,0,7); ctx.stroke();
+  if(!n){$('famResult').innerHTML='<div class="note warn">Πολύ σκοτεινό/καμένο σημείο — δοκίμασε άλλο.</div>';return;}
+  famScore(rs/n,gs/n,bs/n);
+};
+function famScore(r,g,b){
+  // Δείκτης ερυθρότητας: διαφορά κόκκινου από μ.ό. πράσινου/μπλε, κανονικοποιημένη στη φωτεινότητα
+  const red=(r-(g+b)/2)/Math.max(60,(r+g+b)/3);
+  const sc=red>1.05?1:red>0.8?2:red>0.55?3:red>0.32?4:5;
+  const COL=['','#b3122b','#e0435b','#ec8fa0','#f3c3cc','#faf0f2'], TX=['','#fff','#fff','#222','#222','#222'];
+  const adv={1:'Βέλτιστο — ΔΕΝ χρειάζεται αποπαρασίτωση.',2:'Αποδεκτό — ΔΕΝ χρειάζεται αποπαρασίτωση.',3:'Οριακό — αποπαρασίτωση αν είναι νεαρό/έγκυο/σε γαλακτ. ή αν έχει οίδημα γνάθου.',4:'Αναιμικό — ΑΠΟΠΑΡΑΣΙΤΩΣΗ (κατά οδηγία κτηνιάτρου).',5:'Σοβαρή αναιμία — ΑΠΟΠΑΡΑΣΙΤΩΣΗ & κτηνίατρος (συμπληρωματική αγωγή).'}[sc];
+  $('famResult').innerHTML=`<div class="inline"><span class="swatch" style="background:rgb(${r|0},${g|0},${b|0})"></span><div><div class="small">Μέσο χρώμα RGB(${r|0}, ${g|0}, ${b|0}) · δείκτης ερυθρότητας ${fmt(red,2)}</div><div style="font-size:20px;font-weight:800">Εκτίμηση FAMACHA: ${sc}</div></div></div>
+    <div class="famscale">${[1,2,3,4,5].map(i=>`<div class="${i===sc?'on':''}" style="background:${COL[i]};color:${TX[i]}">${i}</div>`).join('')}</div>
+    <div class="note ${sc>=4?'bad':sc===3?'warn':'ok'}"><b>${adv}</b></div>
+    <div class="hint">Εκτίμηση από φωτογραφία — επηρεάζεται από φωτισμό/κάμερα. Επιβεβαίωσε με την επίσημη κάρτα FAMACHA© και κοπρανοσκόπηση. Ισχύει για τον <i>Haemonchus contortus</i> (αίμογχο).</div>
+    <div class="btnrow"><button class="btn mini" id="famLog">➕ Καταχώρηση στο ημερολόγιο</button></div>`;
+  $('famLog').onclick=()=>{ const tg=$('famTarget').value; if(!tg){alert('Επίλεξε ζώο/κοπάδι.');return;}
+    DB.logs.push({id:uid(),target:tg,date:todayISO(),cat:'Παρατήρηση',product:'FAMACHA '+sc,qty:'',cost:0,income:0,notes:'Εκτίμηση από φωτογραφία: '+adv}); save(); $('famLog').textContent='✅ Καταχωρήθηκε'; $('famLog').disabled=true; };
+}
+function fillFamTarget(){ const hs=DB.herds.filter(h=>SP[h.sp].famacha);
+  $('famTarget').innerHTML='<option value="">—</option>'+hs.map(h=>`<option value="herd:${h.id}">${esc(herdLabel(h))}</option>`).join('')+
+    DB.animals.filter(a=>{const h=getH(a.herdId);return h&&SP[h.sp].famacha&&!GONE.includes(a.status);}).map(a=>`<option value="animal:${a.id}">🏷️ ${esc(a.tag)}${a.name?' «'+esc(a.name)+'»':''}</option>`).join(''); }
+const BCS={smallrum:[['1 — Πολύ αδύνατο','Αιχμηρές ακανθώδεις & εγκάρσιες αποφύσεις, κανένα λίπος. Άμεση διατροφική παρέμβαση & έλεγχος για παράσιτα/δόντια.'],['2 — Αδύνατο','Αποφύσεις ευδιάκριτες αλλά λίγο στρογγυλεμένες. Αύξησε ενέργεια — κακή γονιμότητα/γάλα.'],['3 — Ιδανικό','Αποφύσεις στρογγυλεμένες, ψηλαφώνται με ελαφριά πίεση. Στόχος στην οχεία (3–3,5) & στον τοκετό (3).'],['4 — Παχύ','Αποφύσεις ψηλαφώνται μόνο με πίεση. Κίνδυνος τοξαιμίας κυήσεως & δυστοκίας.'],['5 — Παχύσαρκο','Δεν ψηλαφώνται αποφύσεις. Μείωσε ενέργεια σταδιακά.']],
+  cattle:[['1 — Πολύ αδύνατη','Εμφανή πλευρά, λεκάνη & ράχη χωρίς λίπος.'],['2 — Αδύνατη','Ορατά πλευρά, γωνιώδη ισχία. Χαμηλή γονιμότητα.'],['3 — Ιδανική (γαλακτ. 2,75–3,25)','Πλευρά ψηλαφώνται, λεία κάλυψη λεκάνης. Στόχος στη σπερματέγχυση.'],['3,5 — Ιδανική στην ξήρανση/τοκετό','Στρογγυλεμένο πίσω μέρος. Διατήρησε κατά την ξηρά.'],['4–5 — Παχιά','Λίπος στη βάση της ουράς. Κίνδυνος κέτωσης/λιπώδους ήπατος/δυστοκίας.']]};
+$('bcsGrp').onchange=renderBCS;
+function renderBCS(){ $('bcsBox').innerHTML=BCS[$('bcsGrp').value].map((x,i)=>`<div class="note ${i===2||(i===3&&$('bcsGrp').value==='cattle')?'ok':i<2?'warn':'info'}"><b>${x[0]}</b><br>${x[1]}</div>`).join('')+'<div class="hint">Ψηλάφηση στην οσφυϊκή χώρα (πίσω από το τελευταίο πλευρό). Βαθμολόγησε κάθε 1–2 μήνες.</div>'; }
+
+/* ================= ENCYCLOPEDIA ================= */
+let encCat='all', encSp='', encQ='', PHOTOS=false, photoCache={};
+try{ PHOTOS=localStorage.getItem('ktino_photos')==='1'; photoCache=JSON.parse(localStorage.getItem('ktino_photocache')||'{}'); }catch(e){}
+function savePhotoCache(){ try{ localStorage.setItem('ktino_photocache',JSON.stringify(photoCache)); }catch(e){} }
+async function fetchPhoto(title){
+  if(!title) return null; if(title in photoCache) return photoCache[title];
+  try{ const u='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=400&titles='+encodeURIComponent(title);
+    const d=await (await fetch(u)).json(); const pg=d.query&&d.query.pages?Object.values(d.query.pages)[0]:null;
+    const url=pg&&pg.thumbnail?pg.thumbnail.source:null; photoCache[title]=url; savePhotoCache(); return url; }catch(e){ return null; }
+}
+function encItems(){
+  const sp=Object.entries(SP).map(([k,m])=>({kind:'sp',k,grp:m.grp,n:m.name,e:m.e,w:m.wiki,sub:GRP[m.grp],txt:m.name+' '+m.breeds.join(' ')}));
+  const br=BREEDS.map((b,i)=>({kind:'br',i,grp:SP[b.sp].grp,n:b.n,e:SP[b.sp].e,w:b.w,sub:SP[b.sp].name,txt:b.n+' '+b.o+' '+b.u+' '+SP[b.sp].name,b}));
+  return sp.concat(br);
+}
+function renderEncyclopedia(){
+  $('encCats').innerHTML=[['all','Όλα']].concat(Object.entries(GRP)).map(([k,v])=>`<button data-c="${k}" class="${encCat===k?'active':''}">${esc(v)}</button>`).join('');
+  $('encCats').querySelectorAll('button').forEach(b=>b.onclick=()=>{encCat=b.dataset.c; encSp=''; renderEncyclopedia();});
+  const sps=encCat==='all'?[]:Object.entries(SP).filter(([k,m])=>m.grp===encCat);
+  $('encSps').innerHTML=sps.length>1?[['','Όλα τα είδη']].concat(sps.map(([k,m])=>[k,m.e+' '+m.name+' ('+BREEDS.filter(b=>b.sp===k).length+')'])).map(([k,v])=>`<button data-s="${k}" class="${encSp===k?'active':''}" style="font-size:11.5px;padding:4px 9px">${esc(v)}</button>`).join(''):'';
+  $('encSps').querySelectorAll('button').forEach(b=>b.onclick=()=>{encSp=b.dataset.s; renderEncyclopedia();});
+  const q=encQ.toLowerCase();
+  const list=encItems().filter(it=>(encCat==='all'||it.grp===encCat)&&(!encSp||(it.kind==='sp'?it.k===encSp:it.b.sp===encSp))&&(!q||it.txt.toLowerCase().includes(q)));
+  $('encCount').textContent=list.filter(x=>x.kind==='sp').length+' είδη · '+list.filter(x=>x.kind==='br').length+' φυλές';
+  $('encEmpty').style.display=list.length?'none':'';
+  $('encGrid').innerHTML=list.map((it,idx)=>`<div class="pcard ${it.kind==='sp'?'species':''}" data-kind="${it.kind}" data-k="${it.kind==='sp'?it.k:it.i}" data-w="${esc(it.w||'')}" data-fw="${esc(it.kind==='br'?SP[it.b.sp].wiki:'')}">
+    <div class="pthumb"><span class="pe">${it.e}</span></div><div class="pn">${esc(it.n)}</div><div class="psci">${it.kind==='sp'?'Είδος · '+esc(it.sub):esc(it.sub)}</div>
+    <div>${it.kind==='sp'?`<span class="ptag">${SP[it.k].breeds.length} φυλές</span>${SP[it.k].gest?`<span class="ptag">κύηση ${SP[it.k].gest} ημ.</span>`:SP[it.k].incub?`<span class="ptag">επώαση ${SP[it.k].incub} ημ.</span>`:''}`:`<span class="ptag">${esc(it.b.u)}</span><span class="ptag">${esc(it.b.o)}</span>`}</div></div>`).join('');
+  $('encGrid').querySelectorAll('.pcard').forEach(c=>c.onclick=()=>c.dataset.kind==='sp'?openSpecies(c.dataset.k):openBreed(+c.dataset.k));
+  if(PHOTOS) lazyPhotos();
+}
+let photoObs=null;
+function lazyPhotos(){
+  if(photoObs) photoObs.disconnect();
+  photoObs=new IntersectionObserver(ents=>ents.forEach(en=>{ if(en.isIntersecting){ photoObs.unobserve(en.target); loadCardPhoto(en.target); } }),{rootMargin:'250px'});
+  $('encGrid').querySelectorAll('.pcard').forEach(c=>photoObs.observe(c));
+}
+async function loadCardPhoto(card){ const url=(await fetchPhoto(card.dataset.w))||(card.dataset.fw?await fetchPhoto(card.dataset.fw):null); if(url){ const th=card.querySelector('.pthumb'); th.innerHTML=`<img class="pimg" src="${url}" alt="" loading="lazy" referrerpolicy="no-referrer">`; } }
+function modal(head,body){
+  const md=document.createElement('div'); md.className='pmodal'; md.innerHTML=`<div class="pbox"><div class="phead">${head}<button class="x" title="Κλείσιμο">✕</button></div><div class="pbody">${body}</div></div>`;
+  document.body.appendChild(md); const close=()=>{md.remove();document.removeEventListener('keydown',onEsc);};
+  function onEsc(ev){ if(ev.key==='Escape') close(); }
+  md.onclick=e=>{ if(e.target===md) close(); }; md.querySelector('.x').onclick=close; document.addEventListener('keydown',onEsc); return md;
+}
+function openSpecies(k){
+  const m=SP[k], p=m.prod;
+  const facts=[['Μονάδα',m.unit],m.bw?['Βάρος ενήλικου','~'+m.bw+' kg']:null,m.gest?['Κύηση',m.gest+' ημέρες']:null,m.incub?['Επώαση',m.incub+' ημέρες']:null,m.cycle?['Οιστρικός κύκλος',m.cycle+' ημέρες']:null,
+    m.breedAge?['Πρώτη αναπαραγωγή',m.breedAge]:null,m.layStart?['Έναρξη ωοτοκίας',m.layStart+' εβδομάδες']:null,m.wean?['Απογαλακτισμός','~'+m.wean+' ημέρες']:null,
+    m.dmi?['Κατανάλωση ΞΟ',m.dmi+'% ΣΒ (~'+fmt(m.bw*m.dmi/100,1)+' kg/ημ.)']:null,m.feedKg?['Τροφή','~'+fmt(m.feedKg*1000,0)+' g/ζώο/ημ.']:null,
+    m.water?['Νερό',m.water[0]+'–'+m.water[1]+' L/ημ.']:null,['Παραγωγή',(p.per?fmt(p.per,0)+' ':'')+p.u],m.cp?['Πρωτεΐνη σιτηρεσίου',m.cp[0]+'–'+m.cp[1]+'% ΞΟ']:null,
+    ['Θερμικό στρες',(m.heat.mode==='thi'?'THI ≥':'T ≥')+m.heat.mild+(m.heat.mode==='thi'?'':'°C')]].filter(Boolean);
+  const cal=(CAL[m.grp]||[]);
+  const dis=DISEASES.filter(d=>d.grp.includes(m.grp));
+  const md=modal(`<span class="pe">${m.e}</span><div><h3>${esc(m.name)}</h3><div class="small">${esc(GRP[m.grp])}</div></div>`,
+    `<p>${esc(m.note)}</p><div class="pgrid">${facts.map(f=>`<div><b>${esc(f[0])}</b>${esc(f[1])}</div>`).join('')}</div>
+    <h4>🧬 Φυλές</h4><div>${m.breeds.map(b=>`<span class="pill">${esc(b)}</span>`).join('')}</div>
+    <h4>🗓️ Ετήσιο πρόγραμμα φροντίδων</h4><table>${cal.map(c=>`<tr><td style="white-space:nowrap">${c.m?(c.m.length===12?'Όλο το έτος':c.m.map(x=>MONTHS[x-1].slice(0,3)).join(', ')):(c.rel<0?(-c.rel)+' ημ. πριν τον τοκετό':c.rel+' ημ. μετά τον τοκετό')}</td><td><b>${esc(c.t)}</b><br><span class="small">${esc(c.d)}</span></td></tr>`).join('')}</table>
+    <h4>🩺 Κύριες ασθένειες</h4>${dis.map(d=>`<div class="small" style="margin-bottom:5px"><b>${esc(d.n)}</b>${d.notif?' <span class="badge solid">📣</span>':''}${d.zoo?' <span class="badge warn">ζωονόσος</span>':''} — ${esc(d.d)}</div>`).join('')}
+    <div class="note warn">Ενδεικτικές τιμές — εμβόλια & φάρμακα μόνο με οδηγία κτηνιάτρου.</div>`);
+  if(PHOTOS) fetchPhoto(m.wiki).then(u=>{ if(u){ md.querySelector('.pe').outerHTML=`<img class="pmimg" src="${u}" alt="" referrerpolicy="no-referrer">`; } });
+}
+function openBreed(i){
+  const b=BREEDS[i], m=SP[b.sp];
+  const md=modal(`<span class="pe">${m.e}</span><div><h3>${esc(b.n)}</h3><div class="small">${esc(m.name)}</div></div>`,
+    `<div class="pgrid"><div><b>Προέλευση</b>${esc(b.o)}</div><div><b>Κατεύθυνση</b>${esc(b.u)}</div><div><b>Παραγωγή</b>${esc(b.p)}</div>${m.gest?`<div><b>Κύηση</b>${m.gest} ημ.</div>`:''}${m.incub?`<div><b>Επώαση</b>${m.incub} ημ.</div>`:''}</div>
+    <p>${esc(b.t)}</p><div class="btnrow"><button class="btn sec mini" id="toSp">${m.e} Δες το είδος «${esc(m.name)}»</button></div>`);
+  md.querySelector('#toSp').onclick=()=>{ md.remove(); openSpecies(b.sp); };
+  if(PHOTOS) fetchPhoto(b.w).then(u=>u||fetchPhoto(m.wiki)).then(u=>{ if(u){ md.querySelector('.pe').outerHTML=`<img class="pmimg" src="${u}" alt="" referrerpolicy="no-referrer">`; const c=document.createElement('div'); c.className='pcredit'; c.textContent='📷 Wikipedia / Wikimedia Commons'; md.querySelector('.pbody').appendChild(c);} });
+}
+$('encSearch').oninput=e=>{encQ=e.target.value; renderEncyclopedia();};
+$('encPhotos').checked=PHOTOS;
+$('encPhotos').onchange=()=>{ PHOTOS=$('encPhotos').checked; try{localStorage.setItem('ktino_photos',PHOTOS?'1':'0');}catch(e){} renderEncyclopedia(); };
+
+/* ================= MANUAL WEATHER ================= */
+$('mwSave').onclick=()=>{
+  const uidv=$('mwUnit').value; if(!uidv){alert('Πρόσθεσε πρώτα μονάδα.');return;}
+  const tmax=parseFloat($('mwTmax').value), tmin=parseFloat($('mwTmin').value), rh=parseFloat($('mwRh').value);
+  if(isNaN(tmax)||isNaN(tmin)){alert('Δώσε μέγιστη και ελάχιστη θερμοκρασία.');return;}
+  const days=[]; for(let i=-7;i<=7;i++){ const d=addDays(todayISO(),i); days.push({date:d,tmax,tmin,tmean:(tmax+tmin)/2,prcp:0,rh:isNaN(rh)?50:rh,rhmin:isNaN(rh)?35:Math.max(10,rh-15)}); }
+  DB.weather[uidv]={ts:Date.now(),days,manual:true}; save(); renderDash();
+  const b=$('mwSave'); b.textContent='✅ Εφαρμόστηκε'; setTimeout(()=>b.textContent='💾 Εφαρμογή καιρού',1500);
+};
+
+/* ================= DASHBOARD ================= */
+$('dashUnit').onchange=renderDash;
+$('refreshAll').onclick=async()=>{ $('refreshAll').textContent='⏳ Ανανέωση…'; await refreshAllWeather(); $('refreshAll').textContent='🔄 Ανανέωση καιρού & μοντέλων'; renderDash(); };
+function renderDash(){
+  refreshTargets();
+  const heads=DB.herds.reduce((s,h)=>s+(h.sp==='bees'?0:(h.count||0)),0), hives=DB.herds.filter(h=>h.sp==='bees').reduce((s,h)=>s+(h.count||0),0);
+  const y=new Date().getFullYear()+'-01-01', yl=DB.logs.filter(l=>l.date>=y);
+  const cost=yl.reduce((s,l)=>s+(l.cost||0),0), inc=yl.reduce((s,l)=>s+(l.income||0),0);
+  const rev=DB.herds.reduce((s,h)=>s+prodForecast(h).revenue,0);
+  $('dashKpi').innerHTML=`<div class="box"><div class="v">${DB.units.length}</div><div class="l">Μονάδες</div></div>
+    <div class="box"><div class="v">${DB.herds.length}</div><div class="l">Κοπάδια</div></div>
+    <div class="box"><div class="v">${fmt(heads,0)}</div><div class="l">Ζώα${hives?' + '+hives+' κυψ.':''}</div></div>
+    <div class="box"><div class="v">${birthsUpcoming().filter(o=>o.dd<=30).length}</div><div class="l">Τοκετοί ≤30 ημ.</div></div>
+    <div class="box"><div class="v">${fmt(rev,0)} €</div><div class="l">Εκτ. έσοδα παραγωγής</div></div>
+    <div class="box"><div class="v">${fmt(cost,0)} €</div><div class="l">Κόστος έτους</div></div>
+    <div class="box"><div class="v" style="color:${inc-cost>=0?'var(--ok)':'var(--bad)'}">${fmt(inc-cost,0)} €</div><div class="l">Καθαρό έτους</div></div>`;
+  const adv=buildAdvice();
+  $('dashAdvice').innerHTML=adv.length?adv.map(a=>`<div class="note ${a.cls}"><b>${a.icon} ${esc(a.t)}</b><br>${esc(a.d)}</div>`).join(''):'<div class="empty">✅ Καμία επείγουσα ενέργεια. Πάτησε 🔄 για ενημερωμένο καιρό.</div>';
+  // καιρός
+  const u=getU($('dashUnit').value), w=u&&DB.weather[u.id];
+  if(w){ const t=todayISO(); const fut=w.days.filter(d=>d.date>=t).slice(0,7); const hsp=DB.herds.find(h=>h.unitId===u.id&&h.sp!=='bees');
+    $('dashWeather').innerHTML=`<div class="weatherrow" style="grid-template-columns:repeat(${fut.length},minmax(52px,1fr))">`+fut.map(d=>{ const dd=new Date(d.date+'T12:00:00'); const s=hsp?dayStress(hsp.sp,d):{lvl:0,v:null};
+      return `<div class="wday l${s.lvl}"><div class="d">${['Κυ','Δε','Τρ','Τε','Πε','Πα','Σα'][dd.getDay()]} ${dd.getDate()}/${dd.getMonth()+1}</div><div class="t">${Math.round(d.tmax)}°</div><div class="small">${Math.round(d.tmin)}°</div><div class="p">${d.prcp>0?'💧'+fmt(d.prcp,0):''}</div>${hsp&&SP[hsp.sp].heat.mode==='thi'?`<div class="small">THI ${Math.round(s.v)}</div>`:''}</div>`; }).join('')+
+      `</div><div class="small" style="margin-top:6px">${w.manual?'✍️ Χειροκίνητος καιρός':'Open-Meteo'} · ενημ. ${new Date(w.ts).toLocaleString('el-GR')}${hsp?' · χρώμα = στρες για '+SP[hsp.sp].name:''}</div>`;
+  } else $('dashWeather').innerHTML='<div class="note info">Η μονάδα δεν έχει αποθηκευμένο καιρό. Βεβαιώσου ότι έχει GPS και πάτησε «🔄 Ανανέωση».</div>';
+  // οικονομικά
+  const byC={}, byI={}; yl.forEach(l=>{ if(l.cost) byC[l.cat]=(byC[l.cat]||0)+l.cost; if(l.income) byI[l.cat]=(byI[l.cat]||0)+l.income; });
+  const rc=Object.entries(byC).sort((a,b)=>b[1]-a[1]), ri=Object.entries(byI).sort((a,b)=>b[1]-a[1]);
+  $('dashCost').innerHTML=(rc.length||ri.length)?'<table><tr><th>Κατηγορία</th><th class="num">€</th></tr>'+
+    ri.map(r=>`<tr><td>➕ ${esc(r[0])}</td><td class="num" style="color:var(--ok)">${fmt(r[1],2)}</td></tr>`).join('')+rc.map(r=>`<tr><td>➖ ${esc(r[0])}</td><td class="num" style="color:var(--bad)">${fmt(r[1],2)}</td></tr>`).join('')+
+    `<tr><td><b>Καθαρό</b></td><td class="num"><b>${fmt(inc-cost,2)}</b></td></tr></table>`+(heads?`<div class="small" style="margin-top:6px">Κόστος/ζώο φέτος: <b>${fmt(cost/heads,2)} €</b></div>`:''):'<div class="empty">Δεν έχουν καταχωρηθεί κόστη/έσοδα φέτος.</div>';
+}
+function buildAdvice(){
+  const out=[], t=todayISO();
+  activeWithdrawals().forEach(w=>out.push({cls:'bad',icon:'⛔',t:'Χρόνος αναμονής '+w.kind+' — '+targetLabel(w.target),d:'ΜΗΝ διαθέσεις '+(w.kind.startsWith('γάλ')?'γάλα/αυγά':'ζώα για σφαγή')+' έως '+fd(w.until)+' ('+(w.log.product||w.log.cat)+', '+fd(w.log.date)+').'}));
+  birthsUpcoming().filter(o=>o.dd<=14).forEach(o=>{ const a=o.r.animalId?getA(o.r.animalId):null;
+    out.push({cls:o.dd<0?'bad':o.dd<=3?'warn':'info',icon:isBird(o.h.sp)?'🐣':'🍼',t:(isBird(o.h.sp)?'Εκκόλαψη':'Τοκετός')+' — '+(a?a.tag:(o.h.name||o.m.name)),d:(o.dd<0?'Καθυστέρηση '+(-o.dd)+' ημ. — έλεγξε/ενημέρωσε.':o.dd===0?'ΣΗΜΕΡΑ':'σε '+o.dd+' ημ.')+' ('+fd(o.due)+'). '+(isBird(o.h.sp)?'Lockdown 3 ημ. πριν, αυξημένη υγρασία.':'Καθαρό γεννητήριο, ιώδιο ομφαλού, πρωτόγαλα στις πρώτες 2–6 ώρες.')}); });
+  DB.herds.forEach(h=>{ const m=SP[h.sp], u=getU(h.unitId), nm=(h.name||m.name)+' · '+(u?u.name:'');
+    if(!u||u.lat==null){ out.push({cls:'info',icon:'📍',t:nm,d:'Πρόσθεσε GPS στη μονάδα για αυτόματο καιρό & μοντέλο θερμικού στρες.'}); return; }
+    const days=weatherOfHerd(h); if(!days||h.sp==='bees') return;
+    const hr=heatRisk(h.sp,days);
+    if(hr&&hr.worst>=2) out.push({cls:hr.worst>=3?'bad':'warn',icon:'🌡️',t:'Θερμικό στρες '+LVL[hr.worst]+' — '+nm,d:(hr.mode==='thi'?'THI ':'')+fmt(hr.peak,0)+(hr.mode==='thi'?'':'°C')+' στις '+fd(hr.peakDay)+'. '+heatTips(m.grp)+(hr.milkLoss>0?' Απώλεια γάλακτος ~'+fmt(hr.milkLoss,1)+' kg/αγελ./ημ.':'')});
+    if(hr&&hr.cold) out.push({cls:'info',icon:'❄️',t:'Παγετός — '+nm,d:'Ελάχιστη '+fmt(hr.minT,0)+'°C. Προστασία νεογέννητων, ποτίστρες, +ενέργεια.'});
+  });
+  const cov=feedCoverage(); if(cov&&cov.days<21) out.push({cls:cov.days<10?'bad':'warn',icon:'🌾',t:'Απόθεμα ζωοτροφών ~'+fmt(cov.days,0)+' ημέρες',d:'Ανάγκη ~'+fmt(cov.daily,0)+' kg/ημέρα. Προγραμμάτισε παραγγελία.'});
+  DB.herds.forEach(h=>{ autoProgram(h).filter(o=>o.p===0&&!o.done&&!/Θερμικό|Παγετός|απόθεμα/i.test(o.it.t)).forEach(o=>out.push({cls:'warn',icon:'🗓️',t:o.it.t+' — '+(h.name||SP[h.sp].name),d:o.when+'. '+o.it.d})); });
+  const ord={bad:0,warn:1,ok:2,info:3}; return out.sort((a,b)=>ord[a.cls]-ord[b.cls]);
+}
+
+/* ================= DATA ================= */
+function download(name,content,type){ const b=new Blob([content],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500); }
+$('expJson').onclick=()=>download('ktinotrofos_'+todayISO()+'.json',JSON.stringify(DB,null,1),'application/json');
+$('impJson').onclick=()=>$('impFile').click();
+$('impFile').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d.herds||!d.units) throw 0; if(!confirm('Αντικατάσταση όλων των δεδομένων με το αντίγραφο;'))return; DB=Object.assign({units:[],herds:[],animals:[],logs:[],repro:[],feeds:[],weather:{},settings:{}},d); save(); initAll(); alert('✅ Εισήχθη.'); }catch(err){ alert('Μη έγκυρο αρχείο.'); } }; r.readAsText(f); e.target.value=''; };
+const csvq=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+$('expCsv').onclick=()=>{ const rows=[['Ημερομηνία','Στόχος','Κατηγορία','Προϊόν','Ποσότητα','Κόστος €','Έσοδο €','Αναμονή γάλα (ημ.)','Αναμονή κρέας (ημ.)','Σημειώσεις']].concat(
+  DB.logs.slice().sort((a,b)=>a.date<b.date?-1:1).map(l=>[l.date,targetLabel(l.target),l.cat,l.product,l.qty,l.cost,l.income,l.wMilk,l.wMeat,l.notes]));
+  download('imerologio_'+todayISO()+'.csv','﻿'+rows.map(r=>r.map(csvq).join(';')).join('\r\n'),'text/csv;charset=utf-8'); };
+$('expAnimals').onclick=()=>{ const rows=[['Ενώτιο','Όνομα','Είδος','Κοπάδι','Φύλο','Ημ. γέννησης','Φυλή','Μητέρα','Βάρος','Κατάσταση','Σημειώσεις']].concat(
+  DB.animals.map(a=>{const h=getH(a.herdId);return [a.tag,a.name,h?SP[h.sp].name:'',h?(h.name||''):'',a.sex,a.birth,a.breed,a.mother,a.weight,a.status,a.notes];}));
+  download('mitroo_zoon_'+todayISO()+'.csv','﻿'+rows.map(r=>r.map(csvq).join(';')).join('\r\n'),'text/csv;charset=utf-8'); };
+$('printReport').onclick=()=>{ document.querySelector('#tabs button[data-tab=dash]').click(); setTimeout(()=>window.print(),300); };
+$('clearAll').onclick=()=>{ if(!confirm('Διαγραφή ΟΛΩΝ των δεδομένων; Δεν αναιρείται.'))return; if(!confirm('Σίγουρα; Κράτησες αντίγραφο;'))return;
+  DB={units:[],herds:[],animals:[],logs:[],repro:[],feeds:[],weather:{},settings:DB.settings}; save(); initAll(); };
+$('demoBtn').onclick=()=>{
+  if(DB.herds.length&&!confirm('Θα προστεθούν παραδείγματα στα υπάρχοντα δεδομένα. Συνέχεια;')) return;
+  const u1={id:uid(),name:'Στάνη Ελασσόνας',type:'Στάνη / Μαντρί',area:6,code:'',alt:320,lat:39.894,lon:22.187,poly:null,notes:'Παράδειγμα'};
+  const u2={id:uid(),name:'Βουστάσιο Λάρισας',type:'Στάβλος / Σταβλισμός',area:4,code:'',alt:80,lat:39.64,lon:22.42,poly:null,notes:'Παράδειγμα'};
+  DB.units.push(u1,u2);
+  const bm=(new Date().getMonth()+2)%12+1;
+  const h1={id:uid(),unitId:u1.id,sp:'sheep',breed:'Λακόν (Lacaune)',name:'Αρμεγόμενες',count:320,females:300,males:9,sys:'Ημιεντατικό',bw:65,birthMonth:bm,hatch:null,yieldPer:320,price:1.45};
+  const h2={id:uid(),unitId:u1.id,sp:'goat',breed:'Ελληνική εγχώρια αίγα',name:'',count:80,females:75,males:3,sys:'Εκτατικό (βοσκή)',bw:null,birthMonth:12,hatch:null,yieldPer:null,price:1.2};
+  const h3={id:uid(),unitId:u2.id,sp:'dairy_cow',breed:'Holstein-Friesian',name:'Αγελάδες',count:45,females:42,males:0,sys:'Εντατικό (σταβλισμός)',bw:620,birthMonth:null,hatch:null,yieldPer:8200,price:0.52};
+  const h4={id:uid(),unitId:u1.id,sp:'layer',breed:'ISA Brown',name:'Κοτέτσι',count:120,females:118,males:2,sys:'Εκτατικό (βοσκή)',bw:null,birthMonth:null,hatch:addDays(todayISO(),-40*7),yieldPer:null,price:0.35};
+  DB.herds.push(h1,h2,h3,h4);
+  const a1={id:uid(),herdId:h3.id,tag:'GR112233445',name:'Μαργαρίτα',sex:'F',birth:addDays(todayISO(),-4*365),breed:'Holstein-Friesian',mother:'',weight:640,status:'Έγκυο',notes:'',weights:[]};
+  const a2={id:uid(),herdId:h3.id,tag:'GR112233446',name:'Ντόρα',sex:'F',birth:addDays(todayISO(),-3*365),breed:'Holstein-Friesian',mother:'',weight:600,status:'Σε γαλακτοπαραγωγή',notes:'',weights:[]};
+  DB.animals.push(a1,a2);
+  DB.repro.push({id:uid(),herdId:h3.id,animalId:a1.id,date:addDays(todayISO(),-270),count:1,notes:'Σπέρμα Holstein'});
+  DB.logs.push({id:uid(),target:'herd:'+h1.id,date:addDays(todayISO(),-3),cat:'Φαρμακευτική αγωγή',product:'Αντιβιοτικό μαστίτιδας (παράδειγμα)',qty:'4 ζώα',cost:60,income:0,wMilk:7,wMeat:21,notes:''},
+    {id:uid(),target:'herd:'+h1.id,date:addDays(todayISO(),-10),cat:'Άμελξη / Γάλα',product:'Γάλα',qty:'4.200 kg',cost:0,income:6090,wMilk:0,wMeat:0,notes:'Εκκαθάριση τυροκομείου'},
+    {id:uid(),target:'unit:'+u1.id,date:addDays(todayISO(),-20),cat:'Ζωοτροφές',product:'Τριφύλλι',qty:'6.000 kg',cost:1500,income:0,wMilk:0,wMeat:0,notes:''});
+  DB.feeds.push({id:uid(),name:'Σανός τριφυλλιού (μηδική)',kg:6000,price:0.25},{id:uid(),name:'Καλαμπόκι (καρπός)',kg:4000,price:0.28});
+  save(); initAll(); refreshAllWeather().then(()=>renderDash()); alert('✅ Φορτώθηκε παράδειγμα (2 μονάδες, 4 κοπάδια, 2 αγελάδες).');
+};
+
+/* ================= PWA ================= */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='inline-block';});
+$('installBtn').onclick=async()=>{ if(!deferredPrompt){alert('Για εγκατάσταση στο κινητό: άνοιξε τη σελίδα σε Chrome/Safari και επίλεξε «Προσθήκη στην αρχική οθόνη».');return;} deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $('installBtn').style.display='none'; };
+window.addEventListener('appinstalled',()=>{$('installBtn').style.display='none';});
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+
+/* ================= INIT ================= */
+function initAll(){ renderUnits(); refreshTargets(); renderLogs(); renderDash(); }
+load(); applyTheme(); updNet();
+fillSpeciesSelect($('hSp')); $('hSp').value='sheep'; fillBreedSelect(); updWD();
+initAll();
+$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.1 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+DISEASES.length+' νοσήματα';
+</script>
+</body>
+</html>
