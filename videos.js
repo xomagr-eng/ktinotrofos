@@ -85,3 +85,102 @@ window.VIDEOS = [
   {id:"e4vtz6dJR4U",c:"species",t:"Εκτροφή στρουθοκαμήλων — επίσκεψη σε φάρμα",ch:"Iowa PBS",l:"en",g:["poultry"],kw:["στρουθοκ"]},
   {id:"1T4QHdB8LK4",c:"species",t:"Μεγάλη μονάδα ελαφοτροφίας",ch:"Deer Farming Channel",l:"en",g:["game"],kw:["ελάφ","βαρβατίλ"]}
 ];
+
+/* ================= ΠΕΡΙΣΣΟΤΕΡΑ ΕΛΛΗΝΙΚΑ ΒΙΝΤΕΟ (v1.5) ================= */
+window.VIDEO_CATS.dairy="🧀 Γάλα & τυροκόμηση";
+window.VIDEOS.push(
+  // Περιποίηση
+  {id:"dS2UWpAp7cA",c:"care",t:"Πώς κόβουμε σωστά τα νύχια στα πρόβατα",ch:"Farma Aggelopoulos",l:"el",g:["smallrum"],kw:["οπλ","νυχ","χωλότ","σήψη"]},
+  {id:"CR_g1l_Nohg",c:"care",t:"Η κουρά των προβάτων στα Μητάτα",ch:"Eleni Lazarou",l:"el",g:["smallrum"],kw:["κούρεμα"]},
+  // Υγεία
+  {id:"ClL88f6FKB0",c:"health",t:"Έλεγχος υποκλινικής μαστίτιδας με CMT",ch:"PROUD Farm Incubator",l:"el",g:["cattle","smallrum"],kw:["μαστίτ","cmt","ξήρανση"]},
+  {id:"iu05gtuh4O4",c:"health",t:"Ενημέρωση για τη νόσο «Ευλογιά των αιγοπροβάτων»",ch:"Περιφέρεια Στερεάς Ελλάδας",l:"el",g:["smallrum"],kw:["ευλογι","επαγρύπνηση","βιοασφάλ"]},
+  {id:"6UJdRI5WQsM",c:"health",t:"Ευλογιά προβάτων: συμπτώματα & τι κάνει ο κτηνοτρόφος",ch:"ΕΡΤ Βορείου Αιγαίου",l:"el",g:["smallrum"],kw:["ευλογι","επαγρύπνηση"]},
+  {id:"egpb816jhRo",c:"health",t:"Θερμικό στρες στις αγελάδες",ch:"Lagopoulos Farm",l:"el",g:["cattle"],kw:["θερμικ","καύσων"]},
+  {id:"BzlP87C1guU",c:"health",t:"Πρόβλεψη θερμικού στρες στις αγελάδες",ch:"AlphaNews Live",l:"el",g:["cattle"],kw:["θερμικ","καύσων"]},
+  {id:"FTsXy6ifCio",c:"health",t:"Ασφάλεια & υγεία κοτόπουλων",ch:"Wikifarmer",l:"el",g:["poultry"],kw:["βιοασφάλ","κοτέτσ","γρίπη","άκαρ"]},
+  // Άμελξη
+  {id:"t92BY1i9kd8",c:"milk",t:"Πώς & πότε να αρμέξετε την κατσίκα",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["άμελξ","γάλα"]},
+  {id:"cMfj_efYH00",c:"milk",t:"Αίθουσα αρμεγής προβάτων υψηλής γραμμής — διαστασιολόγηση",ch:"NIK UTB",l:"el",g:["smallrum"],kw:["άμελξ","αμελκτήρ"]},
+  {id:"_D_xHgxdYjo",c:"milk",t:"Παγίδα αρμέγματος στο αμελκτήριο",ch:"NIK UTB",l:"el",g:["smallrum"],kw:["άμελξ","αμελκτήρ"]},
+  // Γάλα & τυροκόμηση
+  {id:"BmM7ZFB25dg",c:"dairy",t:"Σπιτική τυροκόμηση φέτας στο Κουτσελιό Ιωαννίνων",ch:"Olga Krana",l:"el",g:["smallrum","cattle"],kw:["γάλα","τυρ"]},
+  {id:"p6T_j7vfCpQ",c:"dairy",t:"Το τυρί στη Λήμνο: τυροκόμηση στο τυροκομείο",ch:"MedINA",l:"el",g:["smallrum","cattle"],kw:["γάλα","τυρ"]},
+  {id:"R6fC4zSCQcc",c:"dairy",t:"Φτιάχνω ξινοτύρι (ξινομυζήθρα)",ch:"KostasSpear",l:"el",g:["smallrum","cattle"],kw:["γάλα","τυρ"]},
+  // Τοκετός & νεογέννητα
+  {id:"HDFVvoRaIT4",c:"birth",t:"Γέννα κατσίκας",ch:"Manos Milolidakis",l:"el",g:["smallrum"],kw:["τοκετ","γέννα"]},
+  {id:"2gch-7PpVF0",c:"birth",t:"Τα νεογέννητα κατσικάκια",ch:"Dimis Farmer Stories",l:"el",g:["smallrum"],kw:["νεογέν","τοκετ"]},
+  {id:"keFkI_n5eOQ",c:"birth",t:"Η αξία του πρωτογάλακτος στα νεογέννητα αρνιά",ch:"Heliades Farming Solutions",l:"el",g:["smallrum"],kw:["πρωτόγαλ","νεογέν"]},
+  {id:"lqQPiuNkRzg",c:"birth",t:"Γέννα μοσχαριού",ch:"LifeEvents",l:"el",g:["cattle"],kw:["τοκετ","γέννα"]},
+  // Αναπαραγωγή
+  {id:"iufR6N2U984",c:"repro",t:"Τεχνητή σπερματέγχυση",ch:"PROUD Farm Incubator",l:"el",g:["cattle","smallrum"],kw:["σπερματέγχ","οίστρ"]},
+  {id:"JD8PkLontLs",c:"repro",t:"Προετοιμασία κριών για τις οχείες",ch:"Αγγελίνα Κυριακοπούλου",l:"el",g:["smallrum"],kw:["οχεία","κριαρ","τράγ","flushing"]},
+  // Διατροφή & χορτονομή
+  {id:"j6RFHapIQfM",c:"feed",t:"Πώς να ταΐσετε τα πρόβατα",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["σιτηρέσ","ζωοτροφ","διατροφ","βοσκ","συμπλήρωμα"]},
+  {id:"Wt_WAEI-vlg",c:"feed",t:"Πώς να ταΐσετε τις κατσίκες",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["σιτηρέσ","ζωοτροφ","διατροφ","βοσκ"]},
+  {id:"PsgaSsz69D0",c:"feed",t:"Διατροφή αγροτικών ζώων — βασικές αρχές, σιτηρέσιο",ch:"Innovation and Impact Hub",l:"el",g:["smallrum","cattle"],kw:["σιτηρέσ","ζωοτροφ","διατροφ"]},
+  {id:"6c7i6-xKk_w",c:"feed",t:"Πρόβατα Ασσάφ: διατροφή & ποιότητα γάλακτος",ch:"Farma Hellas Genetics",l:"el",g:["smallrum"],kw:["σιτηρέσ","διατροφ","γάλα"]},
+  {id:"1xHITRsKK3Y",c:"feed",t:"Σύγχρονη διατροφή & διαχείριση προβάτων Lacaune (σεμινάριο)",ch:"ΒΙΟΖΩΚΑΤ",l:"el",g:["smallrum"],kw:["σιτηρέσ","διατροφ","μετάβασ"]},
+  {id:"aBD0gC27gU8",c:"feed",t:"Διατροφή & διαχείριση αιγοπροβάτων υψηλής γαλακτοπαραγωγής",ch:"ΒΙΟΖΩΚΑΤ (Zootechnia 2023)",l:"el",g:["smallrum"],kw:["σιτηρέσ","διατροφ","τοξαιμ"]},
+  {id:"BKCIi37Me_E",c:"feed",t:"Κατάρτιση σιτηρεσίων αγελάδων γαλακτοπαραγωγής",ch:"Optimal Diet FS",l:"el",g:["cattle"],kw:["σιτηρέσ","διατροφ","μετάβασ","close-up"]},
+  {id:"VPVKoDdbnEk",c:"feed",t:"Υγεία γαστρεντερικού των γαλακτοπαραγωγών αγελάδων (σεμινάριο)",ch:"ΒΙΟΖΩΚΑΤ",l:"el",g:["cattle"],kw:["οξέωση","σιτηρέσ","διατροφ"]},
+  {id:"nj8Ei6o_5ag",c:"feed",t:"Ενσίρωση μηδικής (τριφύλλι)",ch:"Agro 83 GR",l:"el",g:["cattle","smallrum"],kw:["ενσίρωμα","ενσίρωση","τριφύλλ"]},
+  {id:"Hgp8EQma8nU",c:"feed",t:"Ενσίρωση μηδικής — όλη η διαδικασία",ch:"Savvas Kefalas",l:"el",g:["cattle","smallrum"],kw:["ενσίρωμα","ενσίρωση","χορτονομ"]},
+  // Χειρισμός, εγκαταστάσεις & περίφραξη
+  {id:"UH5DxZZmTWI",c:"handle",t:"Υποστατικά αιγοπροβάτων",ch:"Τμήμα Γεωργίας Κύπρου",l:"el",g:["smallrum"],kw:["σταβλ","υποστατ","χειρισμ","αερισμ"]},
+  {id:"JGPXByZ8FVc",c:"handle",t:"Σύγχρονη τεχνολογία στις μονάδες αγελαδοτροφίας",ch:"Τμήμα Γεωργίας Κύπρου",l:"el",g:["cattle"],kw:["σταβλ","άμελξ","τεχνολογ"]},
+  {id:"f_HSfCqNGnk",c:"handle",t:"Ηλεκτρικός φράχτης για προστασία των οικόσιτων ζώων",ch:"Έξυπνο αγρόκτημα",l:"el",g:["all"],kw:["περίφραξ","θηρευτ"]},
+  {id:"SA1tRri-5II",c:"handle",t:"Ελληνικά ποιμενικά κουτάβια: εκπαίδευση & μεγάλωμα",ch:"ΛΥΚΟΜΑΧΙΝ",l:"el",g:["dogs"],kw:["σκύλ","ποιμενικ"]},
+  // Πουλερικά
+  {id:"F9HJv6edpe8",c:"poultry",t:"Κοτέτσι εύκολο στην κατασκευή",ch:"Το Κανάλι του Γιάννη",l:"el",g:["poultry"],kw:["κοτέτσ","φωλι"]},
+  {id:"6S4Vsa_f-MI",c:"poultry",t:"Θερμομάνα για νεοσσούς: τι πρέπει να προσέξω",ch:"KOTES.GR",l:"el",g:["poultry"],kw:["κλωσσομ","νεοσσ","θερμοκρασία θαλάμου"]},
+  {id:"zTXGk4yqQX8",c:"poultry",t:"Χρήσιμες πληροφορίες για επιτυχημένη εκκόλαψη",ch:"Farma Jim Cott",l:"el",g:["poultry"],kw:["επώαση","εκκόλαψ"]},
+  {id:"9SQTZN_JP8o",c:"poultry",t:"5 λάθη στην εκτροφή των ορτυκιών",ch:"Φάρμα «Η Ράχη»",l:"el",g:["poultry"],kw:["ορτύκ"]},
+  {id:"rahXXnxJJs4",c:"poultry",t:"Πληροφορίες για τις πάπιες της φάρμας",ch:"Φάρμα «Η Ράχη»",l:"el",g:["poultry"],kw:["πάπι"]},
+  {id:"KqOh4fRutDg",c:"poultry",t:"Πάπια Βαρβαρίας (Cairina moschata)",ch:"Φάρμα «Η Ράχη»",l:"el",g:["poultry"],kw:["πάπι"]},
+  {id:"ISWNzLmbvW4",c:"poultry",t:"Γαλοπουλάκια τις πρώτες μέρες",ch:"Το Κανάλι του Γιάννη",l:"el",g:["poultry"],kw:["γαλοπ","νεοσσ"]},
+  {id:"IlIYVtiXEUw",c:"poultry",t:"Το σωστό κλουβί για τους φασιανούς",ch:"Φάρμα πτηνών Peristeras P3",l:"el",g:["poultry"],kw:["φασιαν"]},
+  {id:"FS6PcCI2lVQ",c:"poultry",t:"Φασιανοί & πέρδικες στο εκτροφείο θηραμάτων Νάουσας",ch:"vDimitris",l:"el",g:["poultry"],kw:["φασιαν","πέρδικ","θηραμ"]},
+  {id:"AJ1g8B0pAE0",c:"poultry",t:"Εκτροφείο θηραμάτων Κυνηγετικού Συλλόγου Βόλου",ch:"Kynigesia",l:"el",g:["poultry"],kw:["πέρδικ","φασιαν","θηραμ"]},
+  {id:"vjL0901tZqo",c:"poultry",t:"Νησιώτικες πέρδικες (Alectoris chukar)",ch:"Φάρμα «Η Ράχη»",l:"el",g:["poultry"],kw:["πέρδικ"]},
+  {id:"4LiePtPGL9Y",c:"poultry",t:"Η πρώτη φάρμα στρουθοκαμήλων στην Ελλάδα",ch:"ΕΡΤ",l:"el",g:["poultry"],kw:["στρουθοκ"]},
+  // Μελισσοκομία
+  {id:"u6BaDdu2Apg",c:"bees",t:"Μελισσοκομία για αρχάριους, βήμα-βήμα",ch:"Ορεινή Μέλισσα",l:"el",g:["bees"],kw:["κυψέλ","μελίσσ"]},
+  {id:"LXx2ekM2psk",c:"bees",t:"Πρακτικό σεμινάριο για αρχάριους μελισσοκόμους",ch:"EllinikoMeli",l:"el",g:["bees"],kw:["κυψέλ","μελίσσ"]},
+  {id:"yV56TLaICxc",c:"bees",t:"Παραφυάδες χωρίς βασιλοτροφία & χωρίς μετακίνηση",ch:"Ορεινή Μέλισσα",l:"el",g:["bees"],kw:["παραφυάδ","σμηνουργ"]},
+  {id:"uEJXqwfPrRw",c:"bees",t:"Μέθοδος Ντεμαρί για πρόληψη της σμηνουργίας",ch:"Δυτική Μέλισσα",l:"el",g:["bees"],kw:["σμηνουργ"]},
+  {id:"Xf1Rl8ffR3A",c:"bees",t:"Τροφοδοσία μελισσών: πότε, πόσο, τι & γιατί",ch:"Στέργιος Στεργάτος",l:"el",g:["bees"],kw:["διέγερση","τροφ","σιρόπ","αποθεμ"]},
+  {id:"VZ9xRKRDums",c:"bees",t:"Κανόνες εισαγωγής βασίλισσας για 100% αποδοχή",ch:"melistalaktos.gr",l:"el",g:["bees"],kw:["βασίλισσ","παραφυάδ"]},
+  {id:"MOAOLZ2sEkM",c:"bees",t:"Οξαλικό οξύ με εξάχνωση κατά της βαρρόα",ch:"Ορεινό Μέλι",l:"el",g:["bees"],kw:["βαρρόα","οξαλικ"]},
+  {id:"BgB5UShYPCY",c:"bees",t:"Έλεγχος βαρρόα μετά από οξαλικό & αμιτράζ",ch:"Rhodian bees",l:"el",g:["bees"],kw:["βαρρόα"]},
+  {id:"z8n4Oq1k5M8",c:"bees",t:"Τρύγος ανθόμελου από παραφυάδες",ch:"Μελισσοκομία Melefsis",l:"el",g:["bees"],kw:["τρύγ","μέλι"]},
+  {id:"bNO13uvRB_M",c:"bees",t:"Νέος μελισσοκόμος — οικογενειακή επιχείρηση",ch:"Τμήμα Γεωργίας Κύπρου",l:"el",g:["bees"],kw:["μελίσσ"]},
+  // Εκτροφή ειδών
+  {id:"eG_70lF72js",c:"species",t:"Πώς να μεγαλώσετε πρόβατα",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["πρόβατ"]},
+  {id:"oweQj3w5dZw",c:"species",t:"Πώς να μεγαλώσω κατσίκες",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["κατσίκ","αίγ"]},
+  {id:"FzCUTy7PweM",c:"species",t:"Πώς να φροντίσετε τις κατσίκες",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["κατσίκ","αίγ"]},
+  {id:"QUvfSqlDFww",c:"species",t:"Πώς να επιλέξετε κατσίκια για γάλα & για κρέας",ch:"Wikifarmer",l:"el",g:["smallrum"],kw:["κατσίκ","φυλ"]},
+  {id:"eAlmu2AJsfQ",c:"species",t:"Αιγοπροβατοτρόφος — οικογενειακή επιχείρηση",ch:"Τμήμα Γεωργίας Κύπρου",l:"el",g:["smallrum"],kw:["πρόβατ"]},
+  {id:"AwqxQfYrBVs",c:"species",t:"Αγελαδοτρόφος — οικογενειακή επιχείρηση",ch:"Τμήμα Γεωργίας Κύπρου",l:"el",g:["cattle"],kw:["αγελάδ"]},
+  {id:"QiNNqeDD_0Y",c:"species",t:"Η αγελαδοτροφία στην Ελλάδα",ch:"Dimis Farmer Stories",l:"el",g:["cattle"],kw:["αγελάδ"]},
+  {id:"3cBtGSXI9KQ",c:"species",t:"Φάρμα Γκαντζώρα — εκτροφή βοοειδών",ch:"Dimis Farmer Stories",l:"el",g:["cattle"],kw:["μοσχάρ","βοοειδ","πάχυνση"]},
+  {id:"MgOpDvn86Bc",c:"species",t:"Σε τι υπερέχει το καραγκούνικο πρόβατο",ch:"ΕΡΤ",l:"el",g:["smallrum"],kw:["καραγκούν","φυλ"]},
+  {id:"t3CIVy41k0g",c:"species",t:"Η σπάνια φυλή προβάτων Φλώρινας-Πελαγονίας",ch:"ΕΡΤ",l:"el",g:["smallrum"],kw:["φλώριν","φυλ"]},
+  {id:"hQwNb39RWM8",c:"species",t:"Το χιώτικο πρόβατο (Διευθυντής Κτηνιατρείου Χίου)",ch:"Alithia MME",l:"el",g:["smallrum"],kw:["χιώτικ","φυλ"]},
+  {id:"qxaY4L6b4aM",c:"species",t:"Γίδια Σκοπέλου — μια σπάνια φυλή αιγών",ch:"Dimis Farmer Stories",l:"el",g:["smallrum"],kw:["σκοπέλ","φυλ"]},
+  {id:"6Wy_SQBMfwQ",c:"species",t:"Αυτόχθονες φυλές αιγοπροβάτων (Gen Sheep Milk)",ch:"Innovation and Impact Hub",l:"el",g:["smallrum"],kw:["φυλ","αυτόχθον"]},
+  {id:"DrRK7XRx0Pw",c:"species",t:"Τα βουβάλια της Κερκίνης χρειάζονται νερό & δροσιά",ch:"alterthess",l:"el",g:["cattle"],kw:["βουβάλ","θερμικ"]},
+  {id:"vlxa-plk2rY",c:"species",t:"Φάρμα βουβαλιών — λίμνη Κερκίνη",ch:"Agro 83 GR",l:"el",g:["cattle"],kw:["βουβάλ"]},
+  {id:"P4PMux2oSAM",c:"species",t:"Μαύρος χοίρος — από το χωράφι στο ράφι",ch:"ΕΡΤ",l:"el",g:["pig"],kw:["χοιρ"]},
+  {id:"WZchKE12Xzc",c:"species",t:"Μαύρος χοίρος — συνεργασία ΕΚΕΤΑ με φάρμα",ch:"Fotiadis Farm",l:"el",g:["pig"],kw:["χοιρ"]},
+  {id:"hvOexnyoV54",c:"species",t:"Ελάφια πλατώνια (ντάμα-ντάμα) — Κοζάνη",ch:"Ελληνικό Κέντρο Παρατήρησης",l:"el",g:["game"],kw:["ελάφ"]},
+  {id:"RfRJ9ItZlhs",c:"species",t:"Η μοναδική φάρμα με ελάφια στην Κύπρο",ch:"AlphaNews Live",l:"el",g:["game"],kw:["ελάφ"]},
+  {id:"3jTwLNWLn9Y",c:"species",t:"Μονάδα παραγωγής αγριογούρουνων",ch:"TV100 Θεσσαλονίκη",l:"el",g:["game"],kw:["αγριόχ","αγριογούρ"]},
+  {id:"4HkvxHmBY6E",c:"species",t:"Η τέχνη του πεταλωτή",ch:"ΕΡΤ",l:"el",g:["equine"],kw:["πεταλ","οπλ"]},
+  {id:"5_a1fM6_guM",c:"species",t:"Πετάλωμα αλόγων με τον Δημήτρη Μανάβη",ch:"Εμπρός Επικοινωνία Αιγαίου",l:"el",g:["equine"],kw:["πεταλ","οπλ"]},
+  {id:"pF43cF9z_IE",c:"species",t:"Φάρμα με γαϊδουράκια στην Οινόη Κοζάνης",ch:"ΕΡΤ",l:"el",g:["equine"],kw:["γαϊδ"]},
+  {id:"EXQHJeoKbUI",c:"species",t:"Τι να δίνουμε στα κουνέλια",ch:"Andreas Papastefanakis",l:"el",g:["rabbit"],kw:["κουνέλ","τροφ"]},
+  {id:"lPyGesqTVLk",c:"species",t:"Η αναπαραγωγή των κουνελιών",ch:"FARMA A7",l:"el",g:["rabbit"],kw:["κουνέλ","αναπαραγ"]},
+  {id:"z6hdohKkkNI",c:"species",t:"Η πρώτη μονάδα εκτροφής πέστροφας στην ορεινή Ροδόπη",ch:"ERT3",l:"el",g:["fish"],kw:["πέστροφ"]},
+  {id:"c9bD4LL1Q88",c:"species",t:"Σουφλί: εκτροφή μεταξοσκώληκα",ch:"OPEN",l:"el",g:["insects"],kw:["μεταξοσκ"]}
+);
