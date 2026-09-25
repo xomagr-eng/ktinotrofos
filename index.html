@@ -15,6 +15,7 @@
 <script src="leaflet.min.js"></script>
 <script src="animals.js"></script>
 <script src="tools.js"></script>
+<script src="videos.js"></script>
 <style>
   :root{
     --bg:#f6f1ec; --panel:#ffffff; --ink:#221a17; --muted:#6b5d57; --line:#e2d6cc;
@@ -155,6 +156,12 @@
   .pbig{width:100%;max-height:300px;object-fit:cover;border-radius:10px;display:block}
   .pill.tool{cursor:pointer;border-color:var(--accent)} .pill.tool:hover{background:var(--accent);color:#fff}
   .prog .tools{margin-top:5px}
+  .ytph{aspect-ratio:16/9;border:1px dashed var(--line);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:12px;background:var(--bg);margin:6px 0}
+  .ytbox iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;display:block;margin:6px 0;background:#000}
+  .vidgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+  .vidcard .vt{font-weight:700;font-size:14px;margin-bottom:2px}
+  .pbody .vidcard{border-top:1px solid var(--line);padding-top:8px;margin-top:8px}
+  @media(max-width:640px){.vidgrid{grid-template-columns:1fr}}
   @media(max-width:640px){
     .wrap{padding:8px} header h1{font-size:16px} header .sub{display:none}
     .card{padding:11px} #map{height:240px}
@@ -181,6 +188,7 @@
   <button data-tab="agenda">📒 Ημερολόγιο εργασιών</button>
   <button data-tab="encyclopedia">📚 Εγκυκλοπαίδεια</button>
   <button data-tab="tools">🧰 Εργαλεία</button>
+  <button data-tab="videos">🎬 Βίντεο</button>
   <button data-tab="program">🗓️ Πρόγραμμα ΤΝ</button>
   <button data-tab="repro">🤰 Αναπαραγωγή &amp; Παραγωγή</button>
   <button data-tab="health">🩺 Υγεία, Καύσωνας &amp; Διατροφή</button>
@@ -435,6 +443,18 @@
   <div class="enc-grid" id="toolGrid"></div>
 </div>
 
+<!-- ============================ VIDEOS ============================ -->
+<div class="tabpane" id="tab-videos">
+  <div class="card">
+    <h2>🎬 Βίντεο εργασιών <span class="r"><span class="small" id="vidCount"></span></span></h2>
+    <div class="hint">Επιλεγμένα εκπαιδευτικά βίντεο για τις εργασίες του κτηνοτρόφου — ελληνικά όπου υπάρχουν, αλλιώς από πανεπιστήμια &amp; γεωργικούς φορείς (Penn State, Purdue, Teagasc, AHDB…). Στα αγγλικά: ⚙️ → Υπότιτλοι → Αυτόματη μετάφραση → Ελληνικά. Φορτώνουν <b>μόνο με κλικ</b> (youtube-nocookie).</div>
+    <div class="row"><input id="vidSearch" placeholder="🔎 Αναζήτηση βίντεο (π.χ. τοκετός, κούρεμα, βαρρόα)…"><select id="vidGrp" style="max-width:260px"></select></div>
+    <div class="enc-cats" id="vidCats"></div>
+    <label class="inline" style="margin-top:10px;cursor:pointer;font-weight:600;color:var(--ink)"><input type="checkbox" id="vidEl" style="width:auto;flex:0"> <span>🇬🇷 Μόνο ελληνικά βίντεο</span></label>
+  </div>
+  <div class="vidgrid" id="vidGrid"></div>
+</div>
+
 <!-- ============================ AUTO PROGRAM ============================ -->
 <div class="tabpane" id="tab-program">
   <div class="card">
@@ -535,6 +555,7 @@
     <div class="card">
       <h2>📷 FAMACHA© — αναιμία αιγοπροβάτων</h2>
       <div class="hint">Φωτογράφισε τον <b>κάτω βλεφαρικό επιπεφυκότα</b> (τράβηξε απαλά το κάτω βλέφαρο) σε φυσικό φως χωρίς φλας. Μετά <b>κάνε κλικ πάνω στο ροζ/κόκκινο σημείο</b> για δειγματοληψία χρώματος. Η ανάλυση γίνεται τοπικά (offline).</div>
+      <details style="margin-bottom:8px"><summary style="cursor:pointer;font-weight:600">🎬 Βίντεο: πώς γίνεται η βαθμολόγηση FAMACHA</summary><div id="famVid"></div></details>
       <div id="dropzone">📎 Σύρε εδώ ή πάτησε για επιλογή φωτογραφίας</div>
       <input type="file" id="fileInput" accept="image/*" style="display:none">
       <canvas id="famCanvas" style="display:none"></canvas>
@@ -550,6 +571,7 @@
     <div class="card">
       <h2>⚖️ Οδηγός Σωματικής Κατάστασης (BCS 1–5)</h2>
       <select id="bcsGrp"><option value="smallrum">Αιγοπρόβατα</option><option value="cattle">Βοοειδή</option></select>
+      <div id="bcsVid"></div>
       <div id="bcsBox" style="margin-top:8px"></div>
     </div>
   </div>
@@ -632,6 +654,7 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   if(t==='agenda') renderLogs();
   if(t==='encyclopedia') renderEncyclopedia();
   if(t==='tools') renderTools();
+  if(t==='videos') renderVideos();
   if(t==='program'){fillHerdSelect('progHerd'); renderProgram();}
   if(t==='repro'){fillHerdSelect('rHerd',h=>isMammal(h.sp)||isBird(h.sp)); fillReproAnimals(); renderReproCalc(); renderBirths(); renderProd(); renderReproKpi();}
   if(t==='health'){fillHerdSelect('hsHerd'); renderHeat(); renderFeed(); renderRation(); renderSymptoms();}
@@ -1081,7 +1104,7 @@ function renderProgram(all){
   const PL=['ΕΠΕΙΓΟΝ','Σύντομα','Προγραμματισμός','Πληροφορία'], PC=['bad','warn','info','ok'];
   $('progBox').innerHTML=hs.map(h=>{ const items=autoProgram(h);
     return `<div class="card"><h2>${esc(herdLabel(h))}</h2>${items.length?items.map(o=>`<div class="prog p${o.p} ${o.done?'done':''}"><div class="h"><div class="lft"><span class="badge ${PC[o.p]}">${o.done?'✅ Έγινε':PL[o.p]}</span><span class="pill">${esc(o.it.cat)}</span>${esc(o.it.t)}</div>
-      <button class="btn sec mini" data-add="${encodeURIComponent(JSON.stringify({h:h.id,cat:o.logCat,product:o.it.t,notes:o.it.t}))}">➕ Ημερολόγιο</button></div>
+      <span>${vidBtn(videosFor(o.it.cat+' '+o.it.t,SP[h.sp].grp).slice(0,4),o.it.t)} <button class="btn sec mini" data-add="${encodeURIComponent(JSON.stringify({h:h.id,cat:o.logCat,product:o.it.t,notes:o.it.t}))}">➕ Ημερολόγιο</button></span></div>
       <div class="why">🕒 ${esc(o.when)} — ${esc(o.it.d)}</div>${(tl=>tl.length?`<div class="tools">🧰 ${toolChips(tl)}</div>`:'')(toolsFor(o.it.cat+' '+o.it.t,SP[h.sp].grp).slice(0,5))}</div>`).join(''):'<div class="empty">Καμία σύσταση για την περίοδο.</div>'}</div>`; }).join('')+
     '<div class="note warn">💉 Εμβόλια, ανθελμινθικά & φάρμακα χορηγούνται <b>μόνο με συνταγή/οδηγία κτηνιάτρου</b>. Το πρόγραμμα είναι ενδεικτικό υπενθυμιστικό.</div>';
   bindToolChips($('progBox'));
@@ -1293,13 +1316,13 @@ function famScore(r,g,b){
   $('famLog').onclick=()=>{ const tg=$('famTarget').value; if(!tg){alert('Επίλεξε ζώο/κοπάδι.');return;}
     DB.logs.push({id:uid(),target:tg,date:todayISO(),cat:'Παρατήρηση',product:'FAMACHA '+sc,qty:'',cost:0,income:0,notes:'Εκτίμηση από φωτογραφία: '+adv}); save(); $('famLog').textContent='✅ Καταχωρήθηκε'; $('famLog').disabled=true; };
 }
-function fillFamTarget(){ const hs=DB.herds.filter(h=>SP[h.sp].famacha);
+function fillFamTarget(){ if(!$('famVid').innerHTML) $('famVid').innerHTML=ytBox('KYFUAvFQ15g'); const hs=DB.herds.filter(h=>SP[h.sp].famacha);
   $('famTarget').innerHTML='<option value="">—</option>'+hs.map(h=>`<option value="herd:${h.id}">${esc(herdLabel(h))}</option>`).join('')+
     DB.animals.filter(a=>{const h=getH(a.herdId);return h&&SP[h.sp].famacha&&!GONE.includes(a.status);}).map(a=>`<option value="animal:${a.id}">🏷️ ${esc(a.tag)}${a.name?' «'+esc(a.name)+'»':''}</option>`).join(''); }
 const BCS={smallrum:[['1 — Πολύ αδύνατο','Αιχμηρές ακανθώδεις & εγκάρσιες αποφύσεις, κανένα λίπος. Άμεση διατροφική παρέμβαση & έλεγχος για παράσιτα/δόντια.'],['2 — Αδύνατο','Αποφύσεις ευδιάκριτες αλλά λίγο στρογγυλεμένες. Αύξησε ενέργεια — κακή γονιμότητα/γάλα.'],['3 — Ιδανικό','Αποφύσεις στρογγυλεμένες, ψηλαφώνται με ελαφριά πίεση. Στόχος στην οχεία (3–3,5) & στον τοκετό (3).'],['4 — Παχύ','Αποφύσεις ψηλαφώνται μόνο με πίεση. Κίνδυνος τοξαιμίας κυήσεως & δυστοκίας.'],['5 — Παχύσαρκο','Δεν ψηλαφώνται αποφύσεις. Μείωσε ενέργεια σταδιακά.']],
   cattle:[['1 — Πολύ αδύνατη','Εμφανή πλευρά, λεκάνη & ράχη χωρίς λίπος.'],['2 — Αδύνατη','Ορατά πλευρά, γωνιώδη ισχία. Χαμηλή γονιμότητα.'],['3 — Ιδανική (γαλακτ. 2,75–3,25)','Πλευρά ψηλαφώνται, λεία κάλυψη λεκάνης. Στόχος στη σπερματέγχυση.'],['3,5 — Ιδανική στην ξήρανση/τοκετό','Στρογγυλεμένο πίσω μέρος. Διατήρησε κατά την ξηρά.'],['4–5 — Παχιά','Λίπος στη βάση της ουράς. Κίνδυνος κέτωσης/λιπώδους ήπατος/δυστοκίας.']]};
 $('bcsGrp').onchange=renderBCS;
-function renderBCS(){ $('bcsBox').innerHTML=BCS[$('bcsGrp').value].map((x,i)=>`<div class="note ${i===2||(i===3&&$('bcsGrp').value==='cattle')?'ok':i<2?'warn':'info'}"><b>${x[0]}</b><br>${x[1]}</div>`).join('')+'<div class="hint">Ψηλάφηση στην οσφυϊκή χώρα (πίσω από το τελευταίο πλευρό). Βαθμολόγησε κάθε 1–2 μήνες.</div>'; }
+function renderBCS(){ $('bcsVid').innerHTML=ytBox($('bcsGrp').value==='cattle'?'wASXNn_CTCU':'xnDxJpIb5oo'); $('bcsBox').innerHTML=BCS[$('bcsGrp').value].map((x,i)=>`<div class="note ${i===2||(i===3&&$('bcsGrp').value==='cattle')?'ok':i<2?'warn':'info'}"><b>${x[0]}</b><br>${x[1]}</div>`).join('')+'<div class="hint">Ψηλάφηση στην οσφυϊκή χώρα (πίσω από το τελευταίο πλευρό). Βαθμολόγησε κάθε 1–2 μήνες.</div>'; }
 
 /* ================= ENCYCLOPEDIA, ΕΡΓΑΛΕΙΑ & ΦΩΤΟΓΡΑΦΙΕΣ ================= */
 let encCat='all', encSp='', encQ='', PHOTOS=true, photoCache={};
@@ -1390,6 +1413,7 @@ function openSpecies(k){
     <h4>🗓️ Ετήσιο πρόγραμμα φροντίδων</h4><table>${cal.map(c=>`<tr><td style="white-space:nowrap">${calWhen(c)}</td><td><b>${esc(c.t)}</b><br><span class="small">${esc(c.d)}</span><div>${toolChips(toolsFor(c.cat+' '+c.t,m.grp).slice(0,4))}</div></td></tr>`).join('')}</table>
     <h4>🩺 Κύριες ασθένειες</h4>${dis.map(d=>`<div class="small" style="margin-bottom:5px"><b>${esc(d.n)}</b>${d.notif?' <span class="badge solid">📣</span>':''}${d.zoo?' <span class="badge warn">ζωονόσος</span>':''} — ${esc(d.d)}</div>`).join('')}
     <h4>🧰 Εργαλεία για αυτό το είδος (${tl.length})</h4><div>${toolChips(tl)}</div>
+    ${(vl=>vl.length?`<h4>🎬 Βίντεο (${vl.length})</h4>`+vl.slice(0,6).map(vidCard).join(''):'')(VIDEOS.filter(v=>v.g.includes(m.grp)))}
     <div class="note warn">Ενδεικτικές τιμές — εμβόλια & φάρμακα μόνο με οδηγία κτηνιάτρου.</div>`);
   bindToolChips(md); md.querySelectorAll('[data-breed]').forEach(c=>c.onclick=()=>{ md.remove(); openBreed(+c.dataset.breed); });
   modalPhoto(md,m.wiki,'',0);
@@ -1430,6 +1454,7 @@ function openTool(i){
   const md=modal(`<span class="pe">${t.e}</span><div><h3>${esc(t.n)}</h3><div class="small">${esc(TOOL_CATS[t.c])} · ${esc(grpShort(t.g))}</div></div>`,
     `<div class="note info"><b>🔧 Χρήση:</b> ${esc(t.u)}</div><div class="note ok"><b>👉 Πώς / συμβουλές:</b> ${esc(t.h)}</div>
     ${t.s&&t.s!=='—'?`<div class="note bad"><b>⚠️ Ασφάλεια:</b> ${esc(t.s)}</div>`:''}
+    ${(vl=>vl.length?`<h4>🎬 Βίντεο (${vl.length})</h4>`+vl.slice(0,3).map(vidCard).join(''):'')(videosForTool(t))}
     ${tk.length?`<h4>📅 Εργασίες που το χρειάζονται</h4><table>${tk.slice(0,12).map(o=>`<tr><td class="small" style="white-space:nowrap">${esc((GRP[o.g]||'Όλα').split(' ').slice(0,2).join(' '))}</td><td><b>${esc(o.c.t)}</b><br><span class="small">${calWhen(o.c)}</span></td></tr>`).join('')}</table>`:''}`);
   modalPhoto(md,t.w,'',t.gen);
 }
@@ -1495,6 +1520,38 @@ async function exportToolsPDF(){
   printDoc('Κτηνοτρόφος ΤΝ — Εργαλεία',body); btn.textContent=old; btn.disabled=false;
 }
 $('encPdf').onclick=exportEncPDF; $('toolPdf').onclick=exportToolsPDF;
+
+/* ================= 🎬 ΒΙΝΤΕΟ ΕΡΓΑΣΙΩΝ (YouTube, μόνο με κλικ) ================= */
+const YTON=new Set(); /* βίντεο που ο χρήστης επέλεξε να φορτώσει σε αυτή τη συνεδρία */
+function ytInner(v){ if(!YTON.has(v)) return `<div class="ytph"><button class="btn" onclick="playYT('${v}')">▶ Φόρτωση βίντεο</button>
+  <div class="small" style="max-width:420px">Από το YouTube (Google), σε λειτουργία αυξημένης ιδιωτικότητας (youtube-nocookie.com). Με το κλικ η IP σου φτάνει στη Google.</div></div>`;
+  return `<iframe src="https://www.youtube-nocookie.com/embed/${v}?rel=0&autoplay=1&cc_load_policy=1&cc_lang_pref=el&hl=el" title="YouTube video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`; }
+function ytBox(v){ return `<div class="ytbox" data-yt="${v}">${ytInner(v)}</div>`; }
+function playYT(v){ YTON.add(v); document.querySelectorAll(`[data-yt="${v}"]`).forEach(e=>e.innerHTML=ytInner(v)); }
+const vidGrpOk=(v,g)=>!g||v.g.includes('all')||v.g.includes(g)||g==='all';
+function videosFor(text,grp){ const s=text.toLowerCase(); return VIDEOS.filter(v=>vidGrpOk(v,grp)&&v.kw.some(k=>s.includes(k))); }
+function videosForTool(t){ return VIDEOS.filter(v=>(t.g.includes('all')||v.g.includes('all')||v.g.some(g=>t.g.includes(g)))&&t.kw.some(k=>v.kw.some(vk=>vk.includes(k)||k.includes(vk)))); }
+const langTag=v=>v.l==='el'?'🇬🇷 Ελληνικά':'🇬🇧 Αγγλικά (υπότιτλοι: ⚙️ → αυτόματη μετάφραση)';
+function vidCard(v){ return `<div class="vidcard"><div class="vt">🎬 ${esc(v.t)}</div><div class="small">${esc(v.ch)} · ${langTag(v)}</div>${ytBox(v.id)}</div>`; }
+function videoModal(list,title){ modal(`<span class="pe">🎬</span><div><h3>${esc(title)}</h3><div class="small">${list.length} βίντεο</div></div>`,list.map(vidCard).join('')); }
+function openVideos(key){ const o=VIDKEYS[key]; if(o) videoModal(o.list,o.title); }
+const VIDKEYS={}; let vidKeyN=0;
+function vidBtn(list,title){ if(!list.length) return ''; const k='v'+(vidKeyN++); VIDKEYS[k]={list,title}; return `<button class="btn sec mini" onclick="openVideos('${k}')">🎬 Βίντεο (${list.length})</button>`; }
+/* ---- Καρτέλα Βίντεο ---- */
+let vidCat='', vidQ='';
+(function(){ $('vidGrp').innerHTML='<option value="">Όλα τα ζώα</option>'+Object.entries(GRP).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join(''); })();
+function renderVideos(){
+  $('vidCats').innerHTML=[['','Όλες']].concat(Object.entries(VIDEO_CATS)).map(([k,v])=>`<button data-c="${k}" class="${vidCat===k?'active':''}">${esc(v)} ${k?'('+VIDEOS.filter(x=>x.c===k).length+')':''}</button>`).join('');
+  $('vidCats').querySelectorAll('button').forEach(b=>b.onclick=()=>{vidCat=b.dataset.c; renderVideos();});
+  const g=$('vidGrp').value, q=vidQ.toLowerCase(), el=$('vidEl').checked;
+  const list=VIDEOS.filter(v=>(!vidCat||v.c===vidCat)&&(!g||v.g.includes('all')||v.g.includes(g))&&(!el||v.l==='el')&&(!q||(v.t+' '+v.ch+' '+v.kw.join(' ')).toLowerCase().includes(q)));
+  $('vidCount').textContent=list.length+' / '+VIDEOS.length+' βίντεο · '+VIDEOS.filter(v=>v.l==='el').length+' ελληνικά';
+  $('vidGrid').innerHTML=list.length?list.map(v=>`<div class="card vidcard">${vidCard(v).replace('<div class="vidcard">','<div>')}
+    <div>${toolChips(TOOLS.map((t,i)=>({t,i})).filter(o=>videosForTool(o.t).includes(v)).slice(0,5))}</div></div>`).join(''):'<div class="empty">Δεν βρέθηκε βίντεο.</div>';
+  bindToolChips($('vidGrid'));
+}
+$('vidSearch').oninput=e=>{vidQ=e.target.value; renderVideos();};
+$('vidGrp').onchange=renderVideos; $('vidEl').onchange=renderVideos;
 
 /* ================= MANUAL WEATHER ================= */
 $('mwSave').onclick=()=>{
@@ -1604,7 +1661,7 @@ function initAll(){ renderUnits(); refreshTargets(); renderLogs(); renderDash();
 load(); applyTheme(); updNet();
 fillSpeciesSelect($('hSp')); $('hSp').value='sheep'; fillBreedSelect(); updWD();
 initAll();
-$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.3 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+TOOLS.length+' εργαλεία · '+DISEASES.length+' νοσήματα';
+$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.4 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+TOOLS.length+' εργαλεία · '+VIDEOS.length+' βίντεο · '+DISEASES.length+' νοσήματα';
 </script>
 </body>
 </html>

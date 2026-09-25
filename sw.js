@@ -1,8 +1,8 @@
 /* Κτηνοτρόφος ΤΝ — service worker */
-const CACHE = 'ktinotrofos-v3';
+const CACHE = 'ktinotrofos-v4';
 const ASSETS = [
   './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
-  './animals.js', './tools.js', './leaflet.min.css', './leaflet.min.js',
+  './animals.js', './tools.js', './videos.js', './leaflet.min.css', './leaflet.min.js',
   './images/marker-icon.png', './images/marker-icon-2x.png', './images/marker-shadow.png',
   './images/layers.png', './images/layers-2x.png'
 ];
@@ -16,7 +16,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = e.request.url;
   // Εξωτερικά live (καιρός/χάρτης/φωτογραφίες): πάντα δίκτυο, χωρίς φούσκωμα cache
-  if (url.includes('tile.openstreetmap') || url.includes('open-meteo') || url.includes('wikipedia.org') || url.includes('wikimedia.org')) {
+  if (url.includes('tile.openstreetmap') || url.includes('open-meteo') || url.includes('wikipedia.org') || url.includes('wikimedia.org') || url.includes('youtube')) {
     e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
     return;
   }
