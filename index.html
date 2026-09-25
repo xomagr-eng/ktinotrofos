@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="leaflet.min.css">
 <script src="leaflet.min.js"></script>
 <script src="animals.js"></script>
+<script src="tools.js"></script>
 <style>
   :root{
     --bg:#f6f1ec; --panel:#ffffff; --ink:#221a17; --muted:#6b5d57; --line:#e2d6cc;
@@ -148,6 +149,12 @@
   .pmodal .pgrid div{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
   .pmodal .pgrid b{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
   .pcredit{font-size:11px;color:var(--muted);text-align:center;padding:6px}
+  .pthumb{position:relative}
+  .pthumb .gen{position:absolute;left:4px;bottom:4px;font-size:9.5px;background:rgba(0,0,0,.6);color:#fff;padding:1px 5px;border-radius:4px}
+  .pthumb.loading::after{content:"⏳";position:absolute;right:6px;top:4px;font-size:13px;opacity:.6}
+  .pbig{width:100%;max-height:300px;object-fit:cover;border-radius:10px;display:block}
+  .pill.tool{cursor:pointer;border-color:var(--accent)} .pill.tool:hover{background:var(--accent);color:#fff}
+  .prog .tools{margin-top:5px}
   @media(max-width:640px){
     .wrap{padding:8px} header h1{font-size:16px} header .sub{display:none}
     .card{padding:11px} #map{height:240px}
@@ -173,6 +180,7 @@
   <button data-tab="animals">🏷️ Μητρώο ζώων</button>
   <button data-tab="agenda">📒 Ημερολόγιο εργασιών</button>
   <button data-tab="encyclopedia">📚 Εγκυκλοπαίδεια</button>
+  <button data-tab="tools">🧰 Εργαλεία</button>
   <button data-tab="program">🗓️ Πρόγραμμα ΤΝ</button>
   <button data-tab="repro">🤰 Αναπαραγωγή &amp; Παραγωγή</button>
   <button data-tab="health">🩺 Υγεία, Καύσωνας &amp; Διατροφή</button>
@@ -403,16 +411,28 @@
 <!-- ============================ ENCYCLOPEDIA ============================ -->
 <div class="tabpane" id="tab-encyclopedia">
   <div class="card">
-    <h2>📚 Εγκυκλοπαίδεια ζώων &amp; φυλών <span class="r"><span class="small" id="encCount"></span></span></h2>
+    <h2>📚 Εγκυκλοπαίδεια ζώων &amp; φυλών <span class="r"><span class="small" id="encCount"></span><button class="btn mini" id="encPdf">🖨️ PDF</button></span></h2>
     <div class="hint">Όλα τα είδη που εκτρέφει ένας κτηνοτρόφος στην Ελλάδα, με ελληνικές &amp; ξένες φυλές. Πάτησε μια κάρτα για κύηση, βάρος, τροφή/νερό, παραγωγή, ετήσιο πρόγραμμα φροντίδων &amp; ασθένειες.</div>
     <input id="encSearch" placeholder="🔎 Αναζήτηση είδους ή φυλής…" style="margin-bottom:10px">
     <div class="enc-cats" id="encCats"></div>
     <div class="enc-cats" id="encSps" style="margin-top:6px"></div>
     <label class="inline" style="margin-top:10px;cursor:pointer;font-weight:600;color:var(--ink)"><input type="checkbox" id="encPhotos" style="width:auto;flex:0"> <span>📷 Εμφάνιση φωτογραφιών (Wikipedia / Wikimedia Commons)</span></label>
-    <div class="hint" style="margin:2px 0 0">Οι φωτογραφίες φορτώνουν <b>online</b> μόνο όταν το ενεργοποιήσεις (opt-in) — αλλιώς δεν γίνεται καμία εξωτερική σύνδεση.</div>
+    <div class="hint" style="margin:2px 0 0">Οι φωτογραφίες φορτώνουν <b>online</b> (Wikipedia/Commons) και κρατιούνται στη μνήμη. Απενεργοποίησέ τες για λειτουργία χωρίς εξωτερικές συνδέσεις. Το <b>🖨️ PDF</b> εξάγει την τρέχουσα προβολή (κατηγορία/αναζήτηση) — επίλεξε «Αποθήκευση ως PDF».</div>
   </div>
   <div class="enc-grid" id="encGrid"></div>
   <div id="encEmpty" class="empty" style="display:none">Δεν βρέθηκε αποτέλεσμα.</div>
+</div>
+
+<!-- ============================ TOOLS ============================ -->
+<div class="tabpane" id="tab-tools">
+  <div class="card">
+    <h2>🧰 Εργαλεία &amp; εξοπλισμός εργασιών <span class="r"><span class="small" id="toolCount"></span><button class="btn mini" id="toolPdf">🖨️ PDF</button></span></h2>
+    <div class="hint">Όλα τα εργαλεία που χρησιμοποιούμε στις εργασίες της κτηνοτροφίας — κούρεμα, σήμανση, εμβολιασμοί, άμελξη, τοκετοί, σπερματέγχυση, χορτονομή, περίφραξη, εκκόλαψη, μελισσοκομία. Πάτησε ένα εργαλείο για χρήση, συμβουλές, ασφάλεια &amp; σε ποιες εργασίες του Προγράμματος ΤΝ χρειάζεται.</div>
+    <div class="row"><input id="toolSearch" placeholder="🔎 Αναζήτηση εργαλείου ή εργασίας (π.χ. κούρεμα, τοκετός)…"><select id="toolGrp" style="max-width:260px"></select></div>
+    <div class="enc-cats" id="toolCats"></div>
+    <label class="inline" style="margin-top:10px;cursor:pointer;font-weight:600;color:var(--ink)"><input type="checkbox" id="toolPhotos" style="width:auto;flex:0"> <span>📷 Εμφάνιση φωτογραφιών (Wikipedia / Wikimedia Commons)</span></label>
+  </div>
+  <div class="enc-grid" id="toolGrid"></div>
 </div>
 
 <!-- ============================ AUTO PROGRAM ============================ -->
@@ -611,6 +631,7 @@ document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{
   if(t==='animals') renderAnimals();
   if(t==='agenda') renderLogs();
   if(t==='encyclopedia') renderEncyclopedia();
+  if(t==='tools') renderTools();
   if(t==='program'){fillHerdSelect('progHerd'); renderProgram();}
   if(t==='repro'){fillHerdSelect('rHerd',h=>isMammal(h.sp)||isBird(h.sp)); fillReproAnimals(); renderReproCalc(); renderBirths(); renderProd(); renderReproKpi();}
   if(t==='health'){fillHerdSelect('hsHerd'); renderHeat(); renderFeed(); renderRation(); renderSymptoms();}
@@ -724,11 +745,11 @@ function prodForecast(h){
       r.lines.push(['Αύξηση κοπαδιού/ημ.',fmt(n*p.adg,1)+' kg'],['Ημέρες έως τελικό βάρος','~'+fmt(days,0)],['Τελικό ζων βάρος',fmt(fin,0)+' kg']);
       if(p.carcass) r.lines.push(['Σφάγια (~'+Math.round(p.carcass*100)+'%)',fmt(fin*p.carcass,0)+' kg']);
       break; }
-    case 'piglets': case 'kits':{ const annual=fem*p.litters*p.perLitter; r.annual=annual; r.unit=p.type==='piglets'?'χοιρίδια':'κουνελάκια'; r.revenue=annual*price;
+    case 'piglets': case 'kits':{ const annual=fem*p.litters*p.perLitter; r.annual=annual; r.unit=p.youngName||(p.type==='piglets'?'χοιρίδια':'κουνελάκια'); r.revenue=annual*price;
       r.lines.push(['Τοκετοί/θηλυκό/έτος',p.litters],['Απογαλ./τοκετό',p.perLitter],['Σύνολο/έτος',fmt(annual,0)]);
       break; }
-    case 'honey':{ const per=Number(h.yieldPer)||p.per; const annual=n*per; r.annual=annual; r.unit='kg μέλι'; r.revenue=annual*price;
-      r.lines.push(['Μέλι/κυψέλη',fmt(per,1)+' kg'],['Σύνολο/έτος',fmt(annual,0)+' kg']); break; }
+    case 'honey': case 'area':{ const per=Number(h.yieldPer)||p.per; const annual=n*per; r.annual=annual; r.unit=p.qty||'kg μέλι'; r.revenue=annual*price;
+      r.lines.push([p.type==='area'?'Ανά στρέμμα':'Μέλι/κυψέλη',fmt(per,1)+' kg'],['Σύνολο/έτος',fmt(annual,0)+' kg']); break; }
     default: r.lines.push(['Παραγωγή',p.u]);
   }
   return r;
@@ -765,14 +786,14 @@ function fillBreedSelect(){
   $('hBmWrap').style.display=mam?'':'none';
   $('hHatchWrap').style.display=(bird||m.prod.type==='meat')?'':'none';
   $('hHatchLbl').textContent=bird?'Ημ. εκκόλαψης (ηλικία σμήνους)':'Ημ. εισαγωγής σε πάχυνση';
-  $('hCountLbl').textContent=bees?'Αριθμός κυψελών':'Σύνολο ζώων';
+  $('hCountLbl').textContent=bees?'Αριθμός κυψελών':m.unit==='στρέμματα'?'Έκταση πάρκων (στρέμματα)':'Σύνολο ζώων';
   $('hFemLbl').textContent=bees?'—':(bird?'Θηλυκά / όρνιθες':'Ενήλικα θηλυκά');
   $('hMaleLbl').textContent=bees?'—':(bird?'Κόκορες':'Αρσενικά αναπαρ.');
   $('hFem').disabled=$('hMale').disabled=bees;
-  const pu={milk:'kg γάλα/θηλυκό',eggs:'αυγά/όρνιθα',honey:'kg μέλι/κυψέλη',broiler:'—',meat:'—',piglets:'—',kits:'—',none:'—'}[m.prod.type];
+  const pu={milk:'kg γάλα/θηλυκό',eggs:'αυγά/όρνιθα',honey:'kg μέλι/κυψέλη',area:'kg/στρέμμα',broiler:'—',meat:'—',piglets:'—',kits:'—',none:'—'}[m.prod.type];
   $('hYieldLbl').textContent='Δική σου απόδοση ('+pu+'/έτος)';
   $('hYield').disabled=pu==='—';
-  $('hPriceLbl').textContent='Τιμή πώλησης ('+({milk:'€/kg γάλα',eggs:'€/αυγό',honey:'€/kg μέλι',broiler:'€/kg ζων',meat:'€/kg ζων',piglets:'€/χοιρίδιο',kits:'€/κουνέλι',none:'—'}[m.prod.type])+')';
+  $('hPriceLbl').textContent='Τιμή πώλησης ('+({milk:'€/kg γάλα',eggs:'€/αυγό',honey:'€/kg μέλι',broiler:'€/kg ζων',meat:'€/kg ζων',piglets:'€/χοιρίδιο',kits:'€/'+(m.prod.youngName?m.prod.youngName.replace(/α$/,'ο').replace(/οί$/,'ό'):'κουνέλι'),area:'€/kg',none:'—'}[m.prod.type])+')';
   $('hSpHint').innerHTML=`<b>${m.e} ${esc(m.name)}:</b> ${esc(m.note)}`;
 }
 $('hSp').onchange=fillBreedSelect;
@@ -1061,8 +1082,9 @@ function renderProgram(all){
   $('progBox').innerHTML=hs.map(h=>{ const items=autoProgram(h);
     return `<div class="card"><h2>${esc(herdLabel(h))}</h2>${items.length?items.map(o=>`<div class="prog p${o.p} ${o.done?'done':''}"><div class="h"><div class="lft"><span class="badge ${PC[o.p]}">${o.done?'✅ Έγινε':PL[o.p]}</span><span class="pill">${esc(o.it.cat)}</span>${esc(o.it.t)}</div>
       <button class="btn sec mini" data-add="${encodeURIComponent(JSON.stringify({h:h.id,cat:o.logCat,product:o.it.t,notes:o.it.t}))}">➕ Ημερολόγιο</button></div>
-      <div class="why">🕒 ${esc(o.when)} — ${esc(o.it.d)}</div></div>`).join(''):'<div class="empty">Καμία σύσταση για την περίοδο.</div>'}</div>`; }).join('')+
+      <div class="why">🕒 ${esc(o.when)} — ${esc(o.it.d)}</div>${(tl=>tl.length?`<div class="tools">🧰 ${toolChips(tl)}</div>`:'')(toolsFor(o.it.cat+' '+o.it.t,SP[h.sp].grp).slice(0,5))}</div>`).join(''):'<div class="empty">Καμία σύσταση για την περίοδο.</div>'}</div>`; }).join('')+
     '<div class="note warn">💉 Εμβόλια, ανθελμινθικά & φάρμακα χορηγούνται <b>μόνο με συνταγή/οδηγία κτηνιάτρου</b>. Το πρόγραμμα είναι ενδεικτικό υπενθυμιστικό.</div>';
+  bindToolChips($('progBox'));
   $('progBox').querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addToAgenda(JSON.parse(decodeURIComponent(b.dataset.add))));
 }
 function addToAgenda(o){
@@ -1156,7 +1178,7 @@ function renderHeat(){
     if(hr.cold) html+=`<div class="note info">❄️ ${hr.cold} ημέρες με παγετό (ελάχ. ${fmt(hr.minT,0)}°C) — προστασία νεογέννητων & ποτιστρών.</div>`;
   }
   const tmx=Math.max(...(hr?hr.fut:days.slice(-3)).map(d=>d.tmax));
-  if(h.sp!=='bees'){ const w=waterPerHead(h.sp,tmx);
+  if(SP[h.sp].water){ const w=waterPerHead(h.sp,tmx);
     html+=`<table style="margin-top:8px"><tr><td>💧 Νερό/ζώο/ημέρα (σε ${Math.round(tmx)}°C)</td><td class="num"><b>${fmt(w,w<2?2:0)} L</b></td></tr><tr><td>💧 Νερό κοπαδιού/ημέρα</td><td class="num"><b>${fmt(w*h.count,0)} L</b></td></tr></table>`; }
   $('heatBox').innerHTML=html;
 }
@@ -1279,20 +1301,37 @@ const BCS={smallrum:[['1 — Πολύ αδύνατο','Αιχμηρές ακαν
 $('bcsGrp').onchange=renderBCS;
 function renderBCS(){ $('bcsBox').innerHTML=BCS[$('bcsGrp').value].map((x,i)=>`<div class="note ${i===2||(i===3&&$('bcsGrp').value==='cattle')?'ok':i<2?'warn':'info'}"><b>${x[0]}</b><br>${x[1]}</div>`).join('')+'<div class="hint">Ψηλάφηση στην οσφυϊκή χώρα (πίσω από το τελευταίο πλευρό). Βαθμολόγησε κάθε 1–2 μήνες.</div>'; }
 
-/* ================= ENCYCLOPEDIA ================= */
-let encCat='all', encSp='', encQ='', PHOTOS=false, photoCache={};
-try{ PHOTOS=localStorage.getItem('ktino_photos')==='1'; photoCache=JSON.parse(localStorage.getItem('ktino_photocache')||'{}'); }catch(e){}
+/* ================= ENCYCLOPEDIA, ΕΡΓΑΛΕΙΑ & ΦΩΤΟΓΡΑΦΙΕΣ ================= */
+let encCat='all', encSp='', encQ='', PHOTOS=true, photoCache={};
+try{ const v=localStorage.getItem('ktino_photos'); PHOTOS=v===null?true:v==='1'; photoCache=JSON.parse(localStorage.getItem('ktino_photocache')||'{}'); }catch(e){}
 function savePhotoCache(){ try{ localStorage.setItem('ktino_photocache',JSON.stringify(photoCache)); }catch(e){} }
+// Φωτογραφία από Wikipedia (τίτλος άρθρου) ή Wikimedia Commons ("File:…")
 async function fetchPhoto(title){
   if(!title) return null; if(title in photoCache) return photoCache[title];
-  try{ const u='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=400&titles='+encodeURIComponent(title);
-    const d=await (await fetch(u)).json(); const pg=d.query&&d.query.pages?Object.values(d.query.pages)[0]:null;
-    const url=pg&&pg.thumbnail?pg.thumbnail.source:null; photoCache[title]=url; savePhotoCache(); return url; }catch(e){ return null; }
+  try{
+    let url=null;
+    if(title.startsWith('File:')){
+      const u='https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=url&iiurlwidth=500&titles='+encodeURIComponent(title);
+      const d=await (await fetch(u)).json(); const pg=d.query&&d.query.pages?Object.values(d.query.pages)[0]:null;
+      url=pg&&pg.imageinfo?(pg.imageinfo[0].thumburl||pg.imageinfo[0].url):null;
+    } else {
+      const u='https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=500&titles='+encodeURIComponent(title);
+      const d=await (await fetch(u)).json(); const pg=d.query&&d.query.pages?Object.values(d.query.pages)[0]:null;
+      url=pg&&pg.thumbnail?pg.thumbnail.source:null;
+    }
+    photoCache[title]=url; savePhotoCache(); return url;
+  }catch(e){ return null; } // εκτός σύνδεσης: δεν αποθηκεύεται, ξαναδοκιμάζει αργότερα
 }
+async function photoFor(w,fw,gen){ let u=await fetchPhoto(w); if(u) return {u,gen:!!gen}; if(fw){ u=await fetchPhoto(fw); if(u) return {u,gen:true}; } return null; }
+const breedW=b=>b.img?'File:'+b.img:b.w;
 function encItems(){
-  const sp=Object.entries(SP).map(([k,m])=>({kind:'sp',k,grp:m.grp,n:m.name,e:m.e,w:m.wiki,sub:GRP[m.grp],txt:m.name+' '+m.breeds.join(' ')}));
-  const br=BREEDS.map((b,i)=>({kind:'br',i,grp:SP[b.sp].grp,n:b.n,e:SP[b.sp].e,w:b.w,sub:SP[b.sp].name,txt:b.n+' '+b.o+' '+b.u+' '+SP[b.sp].name,b}));
+  const sp=Object.entries(SP).map(([k,m])=>({kind:'sp',k,grp:m.grp,n:m.name,e:m.e,w:m.wiki,fw:'',gen:0,sub:GRP[m.grp],txt:m.name+' '+m.breeds.join(' ')}));
+  const br=BREEDS.map((b,i)=>({kind:'br',i,grp:SP[b.sp].grp,n:b.n,e:SP[b.sp].e,w:breedW(b),fw:SP[b.sp].wiki,gen:b.gen||0,sub:SP[b.sp].name,txt:b.n+' '+b.o+' '+b.u+' '+SP[b.sp].name,b}));
   return sp.concat(br);
+}
+function encFiltered(){
+  const q=encQ.toLowerCase();
+  return encItems().filter(it=>(encCat==='all'||it.grp===encCat)&&(!encSp||(it.kind==='sp'?it.k===encSp:it.b.sp===encSp))&&(!q||it.txt.toLowerCase().includes(q)));
 }
 function renderEncyclopedia(){
   $('encCats').innerHTML=[['all','Όλα']].concat(Object.entries(GRP)).map(([k,v])=>`<button data-c="${k}" class="${encCat===k?'active':''}">${esc(v)}</button>`).join('');
@@ -1300,45 +1339,60 @@ function renderEncyclopedia(){
   const sps=encCat==='all'?[]:Object.entries(SP).filter(([k,m])=>m.grp===encCat);
   $('encSps').innerHTML=sps.length>1?[['','Όλα τα είδη']].concat(sps.map(([k,m])=>[k,m.e+' '+m.name+' ('+BREEDS.filter(b=>b.sp===k).length+')'])).map(([k,v])=>`<button data-s="${k}" class="${encSp===k?'active':''}" style="font-size:11.5px;padding:4px 9px">${esc(v)}</button>`).join(''):'';
   $('encSps').querySelectorAll('button').forEach(b=>b.onclick=()=>{encSp=b.dataset.s; renderEncyclopedia();});
-  const q=encQ.toLowerCase();
-  const list=encItems().filter(it=>(encCat==='all'||it.grp===encCat)&&(!encSp||(it.kind==='sp'?it.k===encSp:it.b.sp===encSp))&&(!q||it.txt.toLowerCase().includes(q)));
+  const list=encFiltered();
   $('encCount').textContent=list.filter(x=>x.kind==='sp').length+' είδη · '+list.filter(x=>x.kind==='br').length+' φυλές';
   $('encEmpty').style.display=list.length?'none':'';
-  $('encGrid').innerHTML=list.map((it,idx)=>`<div class="pcard ${it.kind==='sp'?'species':''}" data-kind="${it.kind}" data-k="${it.kind==='sp'?it.k:it.i}" data-w="${esc(it.w||'')}" data-fw="${esc(it.kind==='br'?SP[it.b.sp].wiki:'')}">
+  $('encGrid').innerHTML=list.map(it=>`<div class="pcard ${it.kind==='sp'?'species':''}" data-kind="${it.kind}" data-k="${it.kind==='sp'?it.k:it.i}" data-w="${esc(it.w||'')}" data-fw="${esc(it.fw)}" data-gen="${it.gen?1:0}">
     <div class="pthumb"><span class="pe">${it.e}</span></div><div class="pn">${esc(it.n)}</div><div class="psci">${it.kind==='sp'?'Είδος · '+esc(it.sub):esc(it.sub)}</div>
     <div>${it.kind==='sp'?`<span class="ptag">${SP[it.k].breeds.length} φυλές</span>${SP[it.k].gest?`<span class="ptag">κύηση ${SP[it.k].gest} ημ.</span>`:SP[it.k].incub?`<span class="ptag">επώαση ${SP[it.k].incub} ημ.</span>`:''}`:`<span class="ptag">${esc(it.b.u)}</span><span class="ptag">${esc(it.b.o)}</span>`}</div></div>`).join('');
   $('encGrid').querySelectorAll('.pcard').forEach(c=>c.onclick=()=>c.dataset.kind==='sp'?openSpecies(c.dataset.k):openBreed(+c.dataset.k));
-  if(PHOTOS) lazyPhotos();
+  if(PHOTOS) lazyPhotos($('encGrid'));
 }
-let photoObs=null;
-function lazyPhotos(){
-  if(photoObs) photoObs.disconnect();
-  photoObs=new IntersectionObserver(ents=>ents.forEach(en=>{ if(en.isIntersecting){ photoObs.unobserve(en.target); loadCardPhoto(en.target); } }),{rootMargin:'250px'});
-  $('encGrid').querySelectorAll('.pcard').forEach(c=>photoObs.observe(c));
+const photoObs={};
+function lazyPhotos(box){
+  if(photoObs[box.id]) photoObs[box.id].disconnect();
+  const ob=photoObs[box.id]=new IntersectionObserver(ents=>ents.forEach(en=>{ if(en.isIntersecting){ ob.unobserve(en.target); loadCardPhoto(en.target); } }),{rootMargin:'300px'});
+  box.querySelectorAll('.pcard').forEach(c=>ob.observe(c));
 }
-async function loadCardPhoto(card){ const url=(await fetchPhoto(card.dataset.w))||(card.dataset.fw?await fetchPhoto(card.dataset.fw):null); if(url){ const th=card.querySelector('.pthumb'); th.innerHTML=`<img class="pimg" src="${url}" alt="" loading="lazy" referrerpolicy="no-referrer">`; } }
+async function loadCardPhoto(card){
+  const th=card.querySelector('.pthumb'); th.classList.add('loading');
+  const r=await photoFor(card.dataset.w,card.dataset.fw,card.dataset.gen==='1'); th.classList.remove('loading');
+  if(r) th.innerHTML=`<img class="pimg" src="${r.u}" alt="" loading="lazy" referrerpolicy="no-referrer">${r.gen?'<span class="gen">ενδεικτική</span>':''}`;
+}
+function modalPhoto(md,w,fw,gen){
+  if(!PHOTOS) return;
+  photoFor(w,fw,gen).then(r=>{ if(!r) return; const b=md.querySelector('.pbody');
+    b.insertAdjacentHTML('afterbegin',`<img class="pbig" src="${r.u}" alt="" referrerpolicy="no-referrer"><div class="pcredit">📷 Wikipedia / Wikimedia Commons${r.gen?' · <b>ενδεικτική φωτογραφία</b> (το είδος/η εργασία, όχι το ίδιο ακριβώς)':''}</div>`); });
+}
 function modal(head,body){
   const md=document.createElement('div'); md.className='pmodal'; md.innerHTML=`<div class="pbox"><div class="phead">${head}<button class="x" title="Κλείσιμο">✕</button></div><div class="pbody">${body}</div></div>`;
   document.body.appendChild(md); const close=()=>{md.remove();document.removeEventListener('keydown',onEsc);};
   function onEsc(ev){ if(ev.key==='Escape') close(); }
   md.onclick=e=>{ if(e.target===md) close(); }; md.querySelector('.x').onclick=close; document.addEventListener('keydown',onEsc); return md;
 }
-function openSpecies(k){
-  const m=SP[k], p=m.prod;
-  const facts=[['Μονάδα',m.unit],m.bw?['Βάρος ενήλικου','~'+m.bw+' kg']:null,m.gest?['Κύηση',m.gest+' ημέρες']:null,m.incub?['Επώαση',m.incub+' ημέρες']:null,m.cycle?['Οιστρικός κύκλος',m.cycle+' ημέρες']:null,
+function speciesFacts(m){ const p=m.prod;
+  return [['Μονάδα',m.unit],m.bw?['Βάρος ενήλικου','~'+m.bw+' kg']:null,m.gest?['Κύηση',m.gest+' ημέρες']:null,m.incub?['Επώαση',m.incub+' ημέρες']:null,m.cycle?['Οιστρικός κύκλος',m.cycle+' ημέρες']:null,
     m.breedAge?['Πρώτη αναπαραγωγή',m.breedAge]:null,m.layStart?['Έναρξη ωοτοκίας',m.layStart+' εβδομάδες']:null,m.wean?['Απογαλακτισμός','~'+m.wean+' ημέρες']:null,
     m.dmi?['Κατανάλωση ΞΟ',m.dmi+'% ΣΒ (~'+fmt(m.bw*m.dmi/100,1)+' kg/ημ.)']:null,m.feedKg?['Τροφή','~'+fmt(m.feedKg*1000,0)+' g/ζώο/ημ.']:null,
     m.water?['Νερό',m.water[0]+'–'+m.water[1]+' L/ημ.']:null,['Παραγωγή',(p.per?fmt(p.per,0)+' ':'')+p.u],m.cp?['Πρωτεΐνη σιτηρεσίου',m.cp[0]+'–'+m.cp[1]+'% ΞΟ']:null,
-    ['Θερμικό στρες',(m.heat.mode==='thi'?'THI ≥':'T ≥')+m.heat.mild+(m.heat.mode==='thi'?'':'°C')]].filter(Boolean);
-  const cal=(CAL[m.grp]||[]);
-  const dis=DISEASES.filter(d=>d.grp.includes(m.grp));
+    ['Θερμικό στρες',(m.heat.mode==='thi'?'THI ≥':'T ≥')+m.heat.mild+(m.heat.mode==='thi'?'':'°C')]].filter(Boolean); }
+const calWhen=c=>c.m?(c.m.length===12?'Όλο το έτος':c.m.map(x=>MONTHS[x-1].slice(0,3)).join(', ')):(c.rel<0?(-c.rel)+' ημ. πριν τον τοκετό':c.rel+' ημ. μετά τον τοκετό');
+const toolsOfGrp=g=>TOOLS.map((t,i)=>({t,i})).filter(o=>o.t.g.includes('all')||o.t.g.includes(g));
+function toolsFor(text,grp){ const s=text.toLowerCase(); return TOOLS.map((t,i)=>({t,i})).filter(o=>(o.t.g.includes('all')||o.t.g.includes(grp))&&o.t.kw.some(k=>s.includes(k))); }
+const toolChips=arr=>arr.map(o=>`<span class="pill tool" data-tool="${o.i}">${o.t.e} ${esc(o.t.n)}</span>`).join('');
+function bindToolChips(box){ box.querySelectorAll('[data-tool]').forEach(c=>c.onclick=e=>{ e.stopPropagation(); openTool(+c.dataset.tool); }); }
+function openSpecies(k){
+  const m=SP[k];
+  const cal=(CAL[m.grp]||[]), dis=DISEASES.filter(d=>d.grp.includes(m.grp)), tl=toolsOfGrp(m.grp);
   const md=modal(`<span class="pe">${m.e}</span><div><h3>${esc(m.name)}</h3><div class="small">${esc(GRP[m.grp])}</div></div>`,
-    `<p>${esc(m.note)}</p><div class="pgrid">${facts.map(f=>`<div><b>${esc(f[0])}</b>${esc(f[1])}</div>`).join('')}</div>
-    <h4>🧬 Φυλές</h4><div>${m.breeds.map(b=>`<span class="pill">${esc(b)}</span>`).join('')}</div>
-    <h4>🗓️ Ετήσιο πρόγραμμα φροντίδων</h4><table>${cal.map(c=>`<tr><td style="white-space:nowrap">${c.m?(c.m.length===12?'Όλο το έτος':c.m.map(x=>MONTHS[x-1].slice(0,3)).join(', ')):(c.rel<0?(-c.rel)+' ημ. πριν τον τοκετό':c.rel+' ημ. μετά τον τοκετό')}</td><td><b>${esc(c.t)}</b><br><span class="small">${esc(c.d)}</span></td></tr>`).join('')}</table>
+    `<p>${esc(m.note)}</p><div class="pgrid">${speciesFacts(m).map(f=>`<div><b>${esc(f[0])}</b>${esc(f[1])}</div>`).join('')}</div>
+    <h4>🧬 Φυλές</h4><div>${m.breeds.map(b=>{const i=BREEDS.findIndex(x=>x.n===b);return `<span class="pill ${i>=0?'tool':''}" ${i>=0?`data-breed="${i}"`:''}>${esc(b)}</span>`;}).join('')}</div>
+    <h4>🗓️ Ετήσιο πρόγραμμα φροντίδων</h4><table>${cal.map(c=>`<tr><td style="white-space:nowrap">${calWhen(c)}</td><td><b>${esc(c.t)}</b><br><span class="small">${esc(c.d)}</span><div>${toolChips(toolsFor(c.cat+' '+c.t,m.grp).slice(0,4))}</div></td></tr>`).join('')}</table>
     <h4>🩺 Κύριες ασθένειες</h4>${dis.map(d=>`<div class="small" style="margin-bottom:5px"><b>${esc(d.n)}</b>${d.notif?' <span class="badge solid">📣</span>':''}${d.zoo?' <span class="badge warn">ζωονόσος</span>':''} — ${esc(d.d)}</div>`).join('')}
+    <h4>🧰 Εργαλεία για αυτό το είδος (${tl.length})</h4><div>${toolChips(tl)}</div>
     <div class="note warn">Ενδεικτικές τιμές — εμβόλια & φάρμακα μόνο με οδηγία κτηνιάτρου.</div>`);
-  if(PHOTOS) fetchPhoto(m.wiki).then(u=>{ if(u){ md.querySelector('.pe').outerHTML=`<img class="pmimg" src="${u}" alt="" referrerpolicy="no-referrer">`; } });
+  bindToolChips(md); md.querySelectorAll('[data-breed]').forEach(c=>c.onclick=()=>{ md.remove(); openBreed(+c.dataset.breed); });
+  modalPhoto(md,m.wiki,'',0);
 }
 function openBreed(i){
   const b=BREEDS[i], m=SP[b.sp];
@@ -1346,11 +1400,101 @@ function openBreed(i){
     `<div class="pgrid"><div><b>Προέλευση</b>${esc(b.o)}</div><div><b>Κατεύθυνση</b>${esc(b.u)}</div><div><b>Παραγωγή</b>${esc(b.p)}</div>${m.gest?`<div><b>Κύηση</b>${m.gest} ημ.</div>`:''}${m.incub?`<div><b>Επώαση</b>${m.incub} ημ.</div>`:''}</div>
     <p>${esc(b.t)}</p><div class="btnrow"><button class="btn sec mini" id="toSp">${m.e} Δες το είδος «${esc(m.name)}»</button></div>`);
   md.querySelector('#toSp').onclick=()=>{ md.remove(); openSpecies(b.sp); };
-  if(PHOTOS) fetchPhoto(b.w).then(u=>u||fetchPhoto(m.wiki)).then(u=>{ if(u){ md.querySelector('.pe').outerHTML=`<img class="pmimg" src="${u}" alt="" referrerpolicy="no-referrer">`; const c=document.createElement('div'); c.className='pcredit'; c.textContent='📷 Wikipedia / Wikimedia Commons'; md.querySelector('.pbody').appendChild(c);} });
+  modalPhoto(md,breedW(b),m.wiki,b.gen);
 }
 $('encSearch').oninput=e=>{encQ=e.target.value; renderEncyclopedia();};
+function setPhotos(on){ PHOTOS=on; try{localStorage.setItem('ktino_photos',on?'1':'0');}catch(e){} $('encPhotos').checked=on; $('toolPhotos').checked=on; }
 $('encPhotos').checked=PHOTOS;
-$('encPhotos').onchange=()=>{ PHOTOS=$('encPhotos').checked; try{localStorage.setItem('ktino_photos',PHOTOS?'1':'0');}catch(e){} renderEncyclopedia(); };
+$('encPhotos').onchange=()=>{ setPhotos($('encPhotos').checked); renderEncyclopedia(); };
+
+/* ---- 🧰 Εργαλεία ---- */
+let toolCat='', toolQ='';
+(function(){ $('toolGrp').innerHTML='<option value="">Όλα τα ζώα</option>'+Object.entries(GRP).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join(''); })();
+function toolFiltered(){ const q=toolQ.toLowerCase(), g=$('toolGrp').value;
+  return TOOLS.map((t,i)=>({t,i})).filter(o=>(!toolCat||o.t.c===toolCat)&&(!g||o.t.g.includes('all')||o.t.g.includes(g))&&(!q||(o.t.n+' '+o.t.u+' '+o.t.h+' '+o.t.kw.join(' ')+' '+TOOL_CATS[o.t.c]).toLowerCase().includes(q))); }
+const grpShort=g=>g.includes('all')?'Όλα τα ζώα':g.map(x=>(GRP[x]||'').split(' ')[0]).join(' ');
+function renderTools(){
+  $('toolCats').innerHTML=[['','Όλες']].concat(Object.entries(TOOL_CATS)).map(([k,v])=>`<button data-c="${k}" class="${toolCat===k?'active':''}">${esc(v)} ${k?'('+TOOLS.filter(t=>t.c===k).length+')':''}</button>`).join('');
+  $('toolCats').querySelectorAll('button').forEach(b=>b.onclick=()=>{toolCat=b.dataset.c; renderTools();});
+  const list=toolFiltered(); $('toolCount').textContent=list.length+' / '+TOOLS.length+' εργαλεία';
+  $('toolGrid').innerHTML=list.length?list.map(o=>`<div class="pcard" data-i="${o.i}" data-w="${esc(o.t.w)}" data-fw="" data-gen="${o.t.gen?1:0}">
+    <div class="pthumb"><span class="pe">${o.t.e}</span></div><div class="pn">${esc(o.t.n)}</div><div class="psci">${esc(TOOL_CATS[o.t.c])}</div>
+    <div class="small" style="font-size:11.5px">${esc(o.t.u)}</div><div><span class="ptag">${esc(grpShort(o.t.g))}</span></div></div>`).join(''):'<div class="empty">Δεν βρέθηκε εργαλείο.</div>';
+  $('toolGrid').querySelectorAll('.pcard').forEach(c=>c.onclick=()=>openTool(+c.dataset.i));
+  if(PHOTOS) lazyPhotos($('toolGrid'));
+}
+function toolTasks(t){ const out=[]; Object.entries(CAL).forEach(([g,arr])=>{ if(g!=='_common'&&!t.g.includes('all')&&!t.g.includes(g)) return;
+  arr.forEach(c=>{ const s=(c.cat+' '+c.t).toLowerCase(); if(t.kw.some(k=>s.includes(k))) out.push({g,c}); }); }); return out; }
+function openTool(i){
+  const t=TOOLS[i], tk=toolTasks(t);
+  const md=modal(`<span class="pe">${t.e}</span><div><h3>${esc(t.n)}</h3><div class="small">${esc(TOOL_CATS[t.c])} · ${esc(grpShort(t.g))}</div></div>`,
+    `<div class="note info"><b>🔧 Χρήση:</b> ${esc(t.u)}</div><div class="note ok"><b>👉 Πώς / συμβουλές:</b> ${esc(t.h)}</div>
+    ${t.s&&t.s!=='—'?`<div class="note bad"><b>⚠️ Ασφάλεια:</b> ${esc(t.s)}</div>`:''}
+    ${tk.length?`<h4>📅 Εργασίες που το χρειάζονται</h4><table>${tk.slice(0,12).map(o=>`<tr><td class="small" style="white-space:nowrap">${esc((GRP[o.g]||'Όλα').split(' ').slice(0,2).join(' '))}</td><td><b>${esc(o.c.t)}</b><br><span class="small">${calWhen(o.c)}</span></td></tr>`).join('')}</table>`:''}`);
+  modalPhoto(md,t.w,'',t.gen);
+}
+$('toolSearch').oninput=e=>{toolQ=e.target.value; renderTools();};
+$('toolGrp').onchange=renderTools;
+$('toolPhotos').checked=PHOTOS;
+$('toolPhotos').onchange=()=>{ setPhotos($('toolPhotos').checked); renderTools(); };
+
+/* ---- 🖨️ Εξαγωγή PDF (εκτύπωση → «Αποθήκευση ως PDF») ---- */
+async function prefetchPhotos(jobs,btn){
+  let done=0; const res=new Array(jobs.length); let k=0;
+  async function worker(){ while(k<jobs.length){ const j=k++; res[j]=await photoFor(jobs[j].w,jobs[j].fw,jobs[j].gen); done++; btn.textContent='⏳ Φωτογραφίες '+done+'/'+jobs.length; } }
+  await Promise.all(Array.from({length:6},worker)); return res;
+}
+function printDoc(title,body){
+  const css=`@page{size:A4;margin:14mm}body{font-family:"Segoe UI",Roboto,Arial,sans-serif;color:#1d1718;font-size:11pt;line-height:1.4}
+  h1{color:#a61e22;margin:0 0 4px;font-size:22pt}h2{color:#fff;background:#a61e22;padding:6px 10px;border-radius:6px;margin:18px 0 8px;font-size:14pt;break-after:avoid}
+  h3{margin:0 0 4px;font-size:13pt;color:#7a1418}h4{margin:8px 0 4px;font-size:10.5pt;color:#555}.sub{color:#666;font-size:9.5pt}
+  .sp{border:1.5px solid #c9b8b0;border-radius:8px;padding:10px;margin:0 0 10px;break-inside:avoid-page}
+  .row{display:flex;gap:10px;align-items:flex-start}.row img{width:180px;height:130px;object-fit:cover;border-radius:6px;flex:0 0 auto}
+  .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:9pt}.facts div{background:#f5efec;border-radius:4px;padding:3px 5px}.facts b{display:block;color:#7a1418;font-size:8pt}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.it{border:1px solid #ddd;border-radius:6px;padding:7px;break-inside:avoid;display:flex;gap:8px;font-size:9.5pt}
+  .it img{width:95px;height:72px;object-fit:cover;border-radius:4px;flex:0 0 auto}.it .e{font-size:30px;width:95px;text-align:center;flex:0 0 auto}
+  table{border-collapse:collapse;width:100%;font-size:8.5pt}td{border-bottom:1px solid #eee;padding:2px 4px;vertical-align:top}
+  .gen{font-size:7.5pt;color:#8a6d00}.warn{color:#a61e22}.cover{text-align:center;padding-top:60mm;break-after:page}.cover .big{font-size:60pt}`;
+  const html=`<!DOCTYPE html><html lang="el"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${css}</style></head><body>${body}</body></html>`;
+  const fr=document.createElement('iframe'); fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(fr);
+  fr.onload=async()=>{ const imgs=[...fr.contentDocument.images];
+    await Promise.race([Promise.all(imgs.map(im=>im.complete?1:new Promise(r=>{im.onload=im.onerror=r;}))),new Promise(r=>setTimeout(r,15000))]);
+    fr.contentWindow.focus(); fr.contentWindow.print(); setTimeout(()=>fr.remove(),60000); };
+  fr.srcdoc=html;
+}
+const imgTag=(r,cls)=>r?`<img src="${r.u}" referrerpolicy="no-referrer">${r.gen?'<div class="gen">ενδεικτική φωτ.</div>':''}`:'';
+async function exportEncPDF(){
+  const btn=$('encPdf'), old=btn.textContent; btn.disabled=true;
+  const list=encFiltered(); const spKeys=[...new Set(list.map(it=>it.kind==='sp'?it.k:it.b.sp))];
+  const jobs=[]; spKeys.forEach(k=>jobs.push({w:SP[k].wiki,fw:'',gen:0})); const brs=list.filter(it=>it.kind==='br'); brs.forEach(it=>jobs.push({w:it.w,fw:it.fw,gen:it.gen}));
+  const ph=PHOTOS?await prefetchPhotos(jobs,btn):[];
+  let body=`<div class="cover"><div class="big">🐄🐑🐐🐖🐔🐝</div><h1>Κτηνοτρόφος ΤΝ</h1><div style="font-size:16pt">Εγκυκλοπαίδεια ζώων &amp; φυλών</div>
+    <p class="sub">${spKeys.length} είδη · ${brs.length} φυλές${encCat!=='all'?' · '+esc(GRP[encCat]):''}${encQ?' · αναζήτηση «'+esc(encQ)+'»':''}<br>${fd(todayISO())} · © by Chronis Makris</p>
+    <p class="sub">Ενδεικτικές τιμές — δεν αντικαθιστούν τον κτηνίατρο. Φωτογραφίες: Wikipedia / Wikimedia Commons.</p></div>`;
+  let gprev='';
+  spKeys.forEach((k,si)=>{ const m=SP[k];
+    if(m.grp!==gprev){ gprev=m.grp; body+=`<h2>${esc(GRP[m.grp])}</h2>`; }
+    body+=`<div class="sp"><div class="row">${imgTag(ph[si])}<div style="flex:1"><h3>${m.e} ${esc(m.name)}</h3><div class="sub">${esc(m.note)}</div></div></div>
+      <div class="facts" style="margin-top:6px">${speciesFacts(m).map(f=>`<div><b>${esc(f[0])}</b>${esc(f[1])}</div>`).join('')}</div>
+      <h4>🗓️ Ετήσιο πρόγραμμα</h4><table>${(CAL[m.grp]||[]).map(c=>`<tr><td style="width:28%">${calWhen(c)}</td><td><b>${esc(c.t)}</b> — ${esc(c.d)}</td></tr>`).join('')}</table>
+      <h4>🩺 Ασθένειες</h4><table>${DISEASES.filter(d=>d.grp.includes(m.grp)).map(d=>`<tr><td style="width:28%"><b>${esc(d.n)}</b>${d.notif?' <span class="warn">📣 δήλωση</span>':''}</td><td>${esc(d.d)} <i>${esc(d.a)}</i></td></tr>`).join('')}</table></div>`;
+    const mine=brs.map((it,j)=>({it,j})).filter(o=>o.it.b.sp===k);
+    if(mine.length) body+=`<h4>🧬 Φυλές — ${esc(m.name)} (${mine.length})</h4><div class="grid">${mine.map(o=>{const b=o.it.b, r=ph[spKeys.length+o.j];
+      return `<div class="it">${r?`<div>${imgTag(r)}</div>`:`<div class="e">${m.e}</div>`}<div><b>${esc(b.n)}</b><div class="sub">${esc(b.o)} · ${esc(b.u)} · ${esc(b.p)}</div>${esc(b.t)}</div></div>`;}).join('')}</div>`;
+  });
+  printDoc('Κτηνοτρόφος ΤΝ — Εγκυκλοπαίδεια',body); btn.textContent=old; btn.disabled=false;
+}
+async function exportToolsPDF(){
+  const btn=$('toolPdf'), old=btn.textContent; btn.disabled=true;
+  const list=toolFiltered(); const ph=PHOTOS?await prefetchPhotos(list.map(o=>({w:o.t.w,fw:'',gen:o.t.gen})),btn):[];
+  let body=`<div class="cover"><div class="big">🧰✂️💉🥛🐝</div><h1>Κτηνοτρόφος ΤΝ</h1><div style="font-size:16pt">Εργαλεία &amp; εξοπλισμός εργασιών</div>
+    <p class="sub">${list.length} εργαλεία · ${fd(todayISO())} · © by Chronis Makris</p></div>`;
+  Object.keys(TOOL_CATS).forEach(c=>{ const items=list.map((o,j)=>({o,j})).filter(x=>x.o.t.c===c); if(!items.length) return;
+    body+=`<h2>${esc(TOOL_CATS[c])}</h2><div class="grid">`+items.map(x=>{const t=x.o.t,r=ph[x.j];
+      return `<div class="it">${r?`<div>${imgTag(r)}</div>`:`<div class="e">${t.e}</div>`}<div><b>${t.e} ${esc(t.n)}</b><div class="sub">${esc(grpShort(t.g))}</div>${esc(t.u)}<br><b>Πώς:</b> ${esc(t.h)}${t.s&&t.s!=='—'?`<br><span class="warn"><b>⚠️</b> ${esc(t.s)}</span>`:''}</div></div>`;}).join('')+'</div>'; });
+  printDoc('Κτηνοτρόφος ΤΝ — Εργαλεία',body); btn.textContent=old; btn.disabled=false;
+}
+$('encPdf').onclick=exportEncPDF; $('toolPdf').onclick=exportToolsPDF;
 
 /* ================= MANUAL WEATHER ================= */
 $('mwSave').onclick=()=>{
@@ -1460,7 +1604,7 @@ function initAll(){ renderUnits(); refreshTargets(); renderLogs(); renderDash();
 load(); applyTheme(); updNet();
 fillSpeciesSelect($('hSp')); $('hSp').value='sheep'; fillBreedSelect(); updWD();
 initAll();
-$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.1 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+DISEASES.length+' νοσήματα';
+$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.3 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+TOOLS.length+' εργαλεία · '+DISEASES.length+' νοσήματα';
 </script>
 </body>
 </html>
