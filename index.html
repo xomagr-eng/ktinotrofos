@@ -1454,7 +1454,7 @@ function openTool(i){
   const md=modal(`<span class="pe">${t.e}</span><div><h3>${esc(t.n)}</h3><div class="small">${esc(TOOL_CATS[t.c])} · ${esc(grpShort(t.g))}</div></div>`,
     `<div class="note info"><b>🔧 Χρήση:</b> ${esc(t.u)}</div><div class="note ok"><b>👉 Πώς / συμβουλές:</b> ${esc(t.h)}</div>
     ${t.s&&t.s!=='—'?`<div class="note bad"><b>⚠️ Ασφάλεια:</b> ${esc(t.s)}</div>`:''}
-    ${(vl=>vl.length?`<h4>🎬 Βίντεο (${vl.length})</h4>`+vl.slice(0,3).map(vidCard).join(''):'')(videosForTool(t))}
+    ${(vl=>vl.length?`<h4>🎬 Βίντεο (${vl.length})</h4>`+vl.slice(0,5).map(vidCard).join('')+(vl.length>5?vidBtn(vl,'🎬 '+t.n):''):'')(videosForTool(t))}
     ${tk.length?`<h4>📅 Εργασίες που το χρειάζονται</h4><table>${tk.slice(0,12).map(o=>`<tr><td class="small" style="white-space:nowrap">${esc((GRP[o.g]||'Όλα').split(' ').slice(0,2).join(' '))}</td><td><b>${esc(o.c.t)}</b><br><span class="small">${calWhen(o.c)}</span></td></tr>`).join('')}</table>`:''}`);
   modalPhoto(md,t.w,'',t.gen);
 }
@@ -1531,7 +1531,8 @@ function playYT(v){ YTON.add(v); document.querySelectorAll(`[data-yt="${v}"]`).f
 const elFirst=a=>a.slice().sort((x,y)=>(x.l==='el'?0:1)-(y.l==='el'?0:1));
 const vidGrpOk=(v,g)=>!g||v.g.includes('all')||v.g.includes(g)||g==='all';
 function videosFor(text,grp){ const s=text.toLowerCase(); return elFirst(VIDEOS.filter(v=>vidGrpOk(v,grp)&&v.kw.some(k=>s.includes(k)))); }
-function videosForTool(t){ return elFirst(VIDEOS.filter(v=>(t.g.includes('all')||v.g.includes('all')||v.g.some(g=>t.g.includes(g)))&&t.kw.some(k=>v.kw.some(vk=>vk.includes(k)||k.includes(vk))))); }
+function videosForTool(t){ const own=((window.TOOL_VIDS||{})[t.n]||[]).map(id=>VIDEOS.find(v=>v.id===id)).filter(Boolean);
+  return elFirst(own).concat(elFirst(VIDEOS.filter(v=>!own.includes(v)&&v.c!=='tools'&&(t.g.includes('all')||v.g.includes('all')||v.g.some(g=>t.g.includes(g)))&&t.kw.some(k=>v.kw.some(vk=>vk.includes(k)||k.includes(vk)))))); }
 const langTag=v=>v.l==='el'?'🇬🇷 Ελληνικά':'🇬🇧 Αγγλικά (υπότιτλοι: ⚙️ → αυτόματη μετάφραση)';
 function vidCard(v){ return `<div class="vidcard"><div class="vt">🎬 ${esc(v.t)}</div><div class="small">${esc(v.ch)} · ${langTag(v)}</div>${ytBox(v.id)}</div>`; }
 function videoModal(list,title){ modal(`<span class="pe">🎬</span><div><h3>${esc(title)}</h3><div class="small">${list.length} βίντεο</div></div>`,list.map(vidCard).join('')); }
@@ -1662,7 +1663,7 @@ function initAll(){ renderUnits(); refreshTargets(); renderLogs(); renderDash();
 load(); applyTheme(); updNet();
 fillSpeciesSelect($('hSp')); $('hSp').value='sheep'; fillBreedSelect(); updWD();
 initAll();
-$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.5 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+TOOLS.length+' εργαλεία · '+VIDEOS.length+' βίντεο · '+DISEASES.length+' νοσήματα';
+$('verLine').textContent='Κτηνοτρόφος ΤΝ v1.6 · © by Chronis Makris · offline PWA · '+Object.keys(SP).length+' είδη · '+BREEDS.length+' φυλές · '+TOOLS.length+' εργαλεία · '+VIDEOS.length+' βίντεο · '+DISEASES.length+' νοσήματα';
 </script>
 </body>
 </html>

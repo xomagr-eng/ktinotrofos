@@ -1,5 +1,5 @@
 /* Κτηνοτρόφος ΤΝ — service worker */
-const CACHE = 'ktinotrofos-v5';
+const CACHE = 'ktinotrofos-v6';
 const ASSETS = [
   './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
   './animals.js', './tools.js', './videos.js', './leaflet.min.css', './leaflet.min.js',
