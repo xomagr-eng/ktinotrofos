@@ -1,8 +1,8 @@
 /* Κτηνοτρόφος ΤΝ — service worker */
-const CACHE = 'ktinotrofos-v8';
+const CACHE = 'ktinotrofos-v9';
 const ASSETS = [
   './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
-  './animals.js', './tools.js', './videos.js', './leaflet.min.css', './leaflet.min.js',
+  './animals.js', './tools.js', './videos.js', './ux.js', './leaflet.min.css', './leaflet.min.js',
   './images/marker-icon.png', './images/marker-icon-2x.png', './images/marker-shadow.png',
   './images/layers.png', './images/layers-2x.png'
 ];

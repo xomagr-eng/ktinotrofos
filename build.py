@@ -11,7 +11,7 @@ b64 = lambda f: 'data:image/png;base64,' + base64.b64encode(open(f, 'rb').read()
 os.makedirs('dist', exist_ok=True)
 
 # ---- ZIP ----
-files = ['index.html', 'animals.js', 'tools.js', 'videos.js', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png',
+files = ['index.html', 'animals.js', 'tools.js', 'videos.js', 'ux.js', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png',
          'leaflet.min.js', 'leaflet.min.css', 'README.md'] + ['images/' + f for f in os.listdir('images')]
 with zipfile.ZipFile('dist/Ktinotrofos_TN.zip', 'w', zipfile.ZIP_DEFLATED) as z:
     for f in files:
@@ -41,6 +41,7 @@ rep('<script src="leaflet.min.js"></script>', '<script>\n' + rd('leaflet.min.js'
 rep('<script src="animals.js"></script>', inline('animals.js'))
 rep('<script src="tools.js"></script>', inline('tools.js'))
 rep('<script src="videos.js"></script>', inline('videos.js'))
+rep('<script src="ux.js"></script>', inline('ux.js'))
 rep("if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }",
     "/* standalone: χωρίς service worker */")
 rep("offline PWA · '", "standalone · '")
