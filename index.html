@@ -621,6 +621,8 @@ function load(){ try{const r=localStorage.getItem(LS_KEY); if(r) DB=Object.assig
 function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(DB)); }catch(e){} }
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const $=id=>document.getElementById(id);
+// Κανονικοποίηση για αναζήτηση: χωρίς τόνους/διαλυτικά, πεζά, τελικό σ
+const norm=s=>String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ς/g,'σ');
 const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=(n,d=1)=>isFinite(n)?Number(n).toLocaleString('el-GR',{maximumFractionDigits:d}):"—";
 const pad=n=>String(n).padStart(2,'0');
@@ -962,8 +964,8 @@ function editAnimalStart(id){ const a=getA(id); if(!a)return; editAnimal=id; $('
 ['aSearch','aFilter','aStFilter'].forEach(id=>$(id).addEventListener(id==='aSearch'?'input':'change',renderAnimals));
 function nextBirthOfAnimal(a){ const t=todayISO(); const r=DB.repro.filter(x=>x.animalId===a.id&&!x.done&&getH(x.herdId)).map(x=>{const m=SP[getH(x.herdId).sp];return {x,due:addDays(x.date,m.gest||m.incub||0)};}).filter(o=>o.due>=addDays(t,-20)).sort((p,q)=>p.due<q.due?-1:1); return r[0]||null; }
 function renderAnimals(){
-  const q=$('aSearch').value.trim().toLowerCase(), hf=$('aFilter').value, sf=$('aStFilter').value;
-  let list=DB.animals.filter(a=>(!hf||a.herdId===hf)&&(!q||(a.tag+' '+(a.name||'')+' '+(a.breed||'')).toLowerCase().includes(q)));
+  const q=norm($('aSearch').value.trim()), hf=$('aFilter').value, sf=$('aStFilter').value;
+  let list=DB.animals.filter(a=>(!hf||a.herdId===hf)&&(!q||norm(a.tag+' '+(a.name||'')+' '+(a.breed||'')).includes(q)));
   if(sf==='active') list=list.filter(a=>!GONE.includes(a.status)); else if(sf==='gone') list=list.filter(a=>GONE.includes(a.status));
   $('aCount').textContent=list.length+' / '+DB.animals.length;
   if(!list.length){$('animalList').innerHTML='<div class="empty">Δεν βρέθηκαν ζώα.</div>';return;}
@@ -1353,8 +1355,8 @@ function encItems(){
   return sp.concat(br);
 }
 function encFiltered(){
-  const q=encQ.toLowerCase();
-  return encItems().filter(it=>(encCat==='all'||it.grp===encCat)&&(!encSp||(it.kind==='sp'?it.k===encSp:it.b.sp===encSp))&&(!q||it.txt.toLowerCase().includes(q)));
+  const q=norm(encQ);
+  return encItems().filter(it=>(encCat==='all'||it.grp===encCat)&&(!encSp||(it.kind==='sp'?it.k===encSp:it.b.sp===encSp))&&(!q||norm(it.txt).includes(q)));
 }
 function renderEncyclopedia(){
   $('encCats').innerHTML=[['all','Όλα']].concat(Object.entries(GRP)).map(([k,v])=>`<button data-c="${k}" class="${encCat===k?'active':''}">${esc(v)}</button>`).join('');
@@ -1401,7 +1403,7 @@ function speciesFacts(m){ const p=m.prod;
     ['Θερμικό στρες',(m.heat.mode==='thi'?'THI ≥':'T ≥')+m.heat.mild+(m.heat.mode==='thi'?'':'°C')]].filter(Boolean); }
 const calWhen=c=>c.m?(c.m.length===12?'Όλο το έτος':c.m.map(x=>MONTHS[x-1].slice(0,3)).join(', ')):(c.rel<0?(-c.rel)+' ημ. πριν τον τοκετό':c.rel+' ημ. μετά τον τοκετό');
 const toolsOfGrp=g=>TOOLS.map((t,i)=>({t,i})).filter(o=>o.t.g.includes('all')||o.t.g.includes(g));
-function toolsFor(text,grp){ const s=text.toLowerCase(); return TOOLS.map((t,i)=>({t,i})).filter(o=>(o.t.g.includes('all')||o.t.g.includes(grp))&&o.t.kw.some(k=>s.includes(k))); }
+function toolsFor(text,grp){ const s=norm(text); return TOOLS.map((t,i)=>({t,i})).filter(o=>(o.t.g.includes('all')||o.t.g.includes(grp))&&o.t.kw.some(k=>s.includes(norm(k)))); }
 const toolChips=arr=>arr.map(o=>`<span class="pill tool" data-tool="${o.i}">${o.t.e} ${esc(o.t.n)}</span>`).join('');
 function bindToolChips(box){ box.querySelectorAll('[data-tool]').forEach(c=>c.onclick=e=>{ e.stopPropagation(); openTool(+c.dataset.tool); }); }
 function openSpecies(k){
@@ -1434,8 +1436,8 @@ $('encPhotos').onchange=()=>{ setPhotos($('encPhotos').checked); renderEncyclope
 /* ---- 🧰 Εργαλεία ---- */
 let toolCat='', toolQ='';
 (function(){ $('toolGrp').innerHTML='<option value="">Όλα τα ζώα</option>'+Object.entries(GRP).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join(''); })();
-function toolFiltered(){ const q=toolQ.toLowerCase(), g=$('toolGrp').value;
-  return TOOLS.map((t,i)=>({t,i})).filter(o=>(!toolCat||o.t.c===toolCat)&&(!g||o.t.g.includes('all')||o.t.g.includes(g))&&(!q||(o.t.n+' '+o.t.u+' '+o.t.h+' '+o.t.kw.join(' ')+' '+TOOL_CATS[o.t.c]).toLowerCase().includes(q))); }
+function toolFiltered(){ const q=norm(toolQ), g=$('toolGrp').value;
+  return TOOLS.map((t,i)=>({t,i})).filter(o=>(!toolCat||o.t.c===toolCat)&&(!g||o.t.g.includes('all')||o.t.g.includes(g))&&(!q||norm(o.t.n+' '+o.t.u+' '+o.t.h+' '+o.t.kw.join(' ')+' '+TOOL_CATS[o.t.c]).includes(q))); }
 const grpShort=g=>g.includes('all')?'Όλα τα ζώα':g.map(x=>(GRP[x]||'').split(' ')[0]).join(' ');
 function renderTools(){
   $('toolCats').innerHTML=[['','Όλες']].concat(Object.entries(TOOL_CATS)).map(([k,v])=>`<button data-c="${k}" class="${toolCat===k?'active':''}">${esc(v)} ${k?'('+TOOLS.filter(t=>t.c===k).length+')':''}</button>`).join('');
@@ -1448,7 +1450,7 @@ function renderTools(){
   if(PHOTOS) lazyPhotos($('toolGrid'));
 }
 function toolTasks(t){ const out=[]; Object.entries(CAL).forEach(([g,arr])=>{ if(g!=='_common'&&!t.g.includes('all')&&!t.g.includes(g)) return;
-  arr.forEach(c=>{ const s=(c.cat+' '+c.t).toLowerCase(); if(t.kw.some(k=>s.includes(k))) out.push({g,c}); }); }); return out; }
+  arr.forEach(c=>{ const s=norm(c.cat+' '+c.t); if(t.kw.some(k=>s.includes(norm(k)))) out.push({g,c}); }); }); return out; }
 function openTool(i){
   const t=TOOLS[i], tk=toolTasks(t);
   const md=modal(`<span class="pe">${t.e}</span><div><h3>${esc(t.n)}</h3><div class="small">${esc(TOOL_CATS[t.c])} · ${esc(grpShort(t.g))}</div></div>`,
@@ -1530,7 +1532,7 @@ function ytBox(v){ return `<div class="ytbox" data-yt="${v}">${ytInner(v)}</div>
 function playYT(v){ YTON.add(v); document.querySelectorAll(`[data-yt="${v}"]`).forEach(e=>e.innerHTML=ytInner(v)); }
 const elFirst=a=>a.slice().sort((x,y)=>(x.l==='el'?0:1)-(y.l==='el'?0:1));
 const vidGrpOk=(v,g)=>!g||v.g.includes('all')||v.g.includes(g)||g==='all';
-function videosFor(text,grp){ const s=text.toLowerCase(); return elFirst(VIDEOS.filter(v=>vidGrpOk(v,grp)&&v.kw.some(k=>s.includes(k)))); }
+function videosFor(text,grp){ const s=norm(text); return elFirst(VIDEOS.filter(v=>vidGrpOk(v,grp)&&v.kw.some(k=>s.includes(norm(k))))); }
 function videosForTool(t){ const own=((window.TOOL_VIDS||{})[t.n]||[]).map(id=>VIDEOS.find(v=>v.id===id)).filter(Boolean);
   return elFirst(own).concat(elFirst(VIDEOS.filter(v=>!own.includes(v)&&v.c!=='tools'&&(t.g.includes('all')||v.g.includes('all')||v.g.some(g=>t.g.includes(g)))&&t.kw.some(k=>v.kw.some(vk=>vk.includes(k)||k.includes(vk)))))); }
 const langTag=v=>v.l==='el'?'🇬🇷 Ελληνικά':'🇬🇧 Αγγλικά (υπότιτλοι: ⚙️ → αυτόματη μετάφραση)';
@@ -1545,8 +1547,8 @@ let vidCat='', vidQ='';
 function renderVideos(){
   $('vidCats').innerHTML=[['','Όλες']].concat(Object.entries(VIDEO_CATS)).map(([k,v])=>`<button data-c="${k}" class="${vidCat===k?'active':''}">${esc(v)} ${k?'('+VIDEOS.filter(x=>x.c===k).length+')':''}</button>`).join('');
   $('vidCats').querySelectorAll('button').forEach(b=>b.onclick=()=>{vidCat=b.dataset.c; renderVideos();});
-  const g=$('vidGrp').value, q=vidQ.toLowerCase(), el=$('vidEl').checked;
-  const list=elFirst(VIDEOS).filter(v=>(!vidCat||v.c===vidCat)&&(!g||v.g.includes('all')||v.g.includes(g))&&(!el||v.l==='el')&&(!q||(v.t+' '+v.ch+' '+v.kw.join(' ')).toLowerCase().includes(q)));
+  const g=$('vidGrp').value, q=norm(vidQ), el=$('vidEl').checked;
+  const list=elFirst(VIDEOS).filter(v=>(!vidCat||v.c===vidCat)&&(!g||v.g.includes('all')||v.g.includes(g))&&(!el||v.l==='el')&&(!q||norm(v.t+' '+v.ch+' '+v.kw.join(' ')).includes(q)));
   $('vidCount').textContent=list.length+' / '+VIDEOS.length+' βίντεο · '+VIDEOS.filter(v=>v.l==='el').length+' ελληνικά';
   $('vidGrid').innerHTML=list.length?list.map(v=>`<div class="card vidcard">${vidCard(v).replace('<div class="vidcard">','<div>')}
     <div>${toolChips(TOOLS.map((t,i)=>({t,i})).filter(o=>videosForTool(o.t).includes(v)).slice(0,5))}</div></div>`).join(''):'<div class="empty">Δεν βρέθηκε βίντεο.</div>';
