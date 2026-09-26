@@ -305,7 +305,7 @@ function renderToday(){
   const p=$('tab-today'); const t=todayISO(), now=new Date(), hr=now.getHours();
   const hello=hr<5?'Καλό βράδυ':hr<12?'Καλημέρα':hr<18?'Καλησπέρα':'Καλό βράδυ';
   if(!DB.herds.length){ p.innerHTML=`<div class="card" style="text-align:center;padding:28px 16px">
-      <div style="font-size:56px">🐄🐑🐐🐔</div><p class="hello">${hello}! Καλώς ήρθες στον Κτηνοτρόφο ΤΝ</p>
+      <img src="icon-192.png" alt="" width="132" height="132" style="border-radius:26px;box-shadow:0 8px 24px rgba(0,0,0,.35);margin-bottom:6px"><p class="hello">${hello}! Καλώς ήρθες στον Κτηνοτρόφο ΤΝ</p>
       <p class="small" style="max-width:520px;margin:8px auto 16px">Σε 3 απλά βήματα φτιάχνουμε τη φάρμα σου — και ο Σύμβουλος σου λέει κάθε μέρα τι έχεις να κάνεις: εμβόλια, γέννες, καύσωνες, χρόνους αναμονής, αποθέματα.</p>
       <div class="btnrow" style="justify-content:center"><button class="btn" id="tWiz" style="font-size:17px;padding:14px 22px">🚀 Ξεκίνα (3 βήματα)</button><button class="btn sec" id="tDemo">🧪 Δες ένα παράδειγμα</button></div></div>`;
     $('tWiz').onclick=wizard; $('tDemo').onclick=()=>{ const oc=window.confirm; window.confirm=()=>true; $('demoBtn').click(); window.confirm=oc; ST.onboarded=true; save(); setTimeout(()=>activate('today'),300); };

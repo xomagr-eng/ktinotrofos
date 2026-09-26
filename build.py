@@ -11,7 +11,7 @@ b64 = lambda f: 'data:image/png;base64,' + base64.b64encode(open(f, 'rb').read()
 os.makedirs('dist', exist_ok=True)
 
 # ---- ZIP ----
-files = ['index.html', 'animals.js', 'tools.js', 'videos.js', 'ux.js', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png',
+files = ['index.html', 'animals.js', 'tools.js', 'videos.js', 'ux.js', 'manifest.json', 'sw.js', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'favicon-48.png', 'logo-96.png',
          'leaflet.min.js', 'leaflet.min.css', 'README.md'] + ['images/' + f for f in os.listdir('images')]
 with zipfile.ZipFile('dist/Ktinotrofos_TN.zip', 'w', zipfile.ZIP_DEFLATED) as z:
     for f in files:
@@ -34,14 +34,16 @@ def rep(a, b):
     s = s.replace(a, b, 1)
 
 rep('<link rel="manifest" href="manifest.json">\n', '')
-rep('<link rel="apple-touch-icon" href="icon-192.png">', '<link rel="apple-touch-icon" href="%s">' % ico)
-rep('<link rel="icon" href="icon-192.png">', '<link rel="icon" href="%s">' % ico)
+rep('<link rel="apple-touch-icon" href="apple-touch-icon.png">', '<link rel="apple-touch-icon" href="%s">' % b64('apple-touch-icon.png'))
+rep('<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">', '<link rel="icon" type="image/png" sizes="48x48" href="%s">' % b64('favicon-48.png'))
+rep('src="logo-96.png"', 'src="%s"' % b64('logo-96.png'))
 rep('<link rel="stylesheet" href="leaflet.min.css">', '<style>\n' + css + '\n</style>')
 rep('<script src="leaflet.min.js"></script>', '<script>\n' + rd('leaflet.min.js').replace('</script', '<\\/script') + fix + '</script>')
 rep('<script src="animals.js"></script>', inline('animals.js'))
 rep('<script src="tools.js"></script>', inline('tools.js'))
 rep('<script src="videos.js"></script>', inline('videos.js'))
 rep('<script src="ux.js"></script>', inline('ux.js'))
+rep('src="icon-192.png"', 'src="%s"' % b64('icon-192.png'))
 rep("if('serviceWorker' in navigator && location.protocol.startsWith('http')){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }",
     "/* standalone: χωρίς service worker */")
 rep("offline PWA · '", "standalone · '")

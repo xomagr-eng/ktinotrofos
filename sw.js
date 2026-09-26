@@ -1,7 +1,7 @@
 /* Κτηνοτρόφος ΤΝ — service worker */
-const CACHE = 'ktinotrofos-v10';
+const CACHE = 'ktinotrofos-v11';
 const ASSETS = [
-  './', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
+  './', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon-48.png', './logo-96.png',
   './animals.js', './tools.js', './videos.js', './ux.js', './leaflet.min.css', './leaflet.min.js',
   './images/marker-icon.png', './images/marker-icon-2x.png', './images/marker-shadow.png',
   './images/layers.png', './images/layers-2x.png'
@@ -23,7 +23,7 @@ self.addEventListener('fetch', e => {
   // Δικά μας HTML/JS/JSON: NETWORK-FIRST — οι ενημερώσεις εμφανίζονται όταν υπάρχει σύνδεση· cache = offline fallback
   if (/\.(html|js|json)($|\?)/.test(url) || url.endsWith('/')) {
     e.respondWith(
-      fetch(e.request).then(res => {
+      fetch(e.request,{cache:"no-cache"}).then(res => {
         if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)); }
         return res;
       }).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
