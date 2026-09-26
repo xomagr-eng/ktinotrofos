@@ -21,7 +21,7 @@ html.hc .small,html.hc .hint{color:var(--ink)!important}
 .bnav{display:none}
 .fab{position:fixed;right:18px;bottom:22px;z-index:60;width:62px;height:62px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:34px;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.35);cursor:pointer}
 .fab:active{transform:scale(.94)}
-@media(max-width:760px){
+@media(max-width:760px) and (orientation:portrait){
   #tabs{display:none!important}
   body{padding-bottom:82px}
   .fab{display:none}
@@ -32,6 +32,37 @@ html.hc .small,html.hc .hint{color:var(--ink)!important}
   .bnav .plus{flex:0 0 auto}
   .bnav .plus .i{width:58px;height:58px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:32px;margin-top:-26px;box-shadow:0 6px 16px rgba(0,0,0,.35)}
 }
+/* ---- ΟΡΙΖΟΝΤΙΑ: κινητό → κάθετη μπάρα αριστερά, συμπαγής κεφαλίδα ---- */
+@media (orientation:landscape) and (max-height:540px){
+  #tabs{display:none!important}
+  .fab{display:none}
+  body{padding-left:calc(78px + env(safe-area-inset-left));padding-bottom:0}
+  header{position:static;padding:6px 12px;gap:8px} header .logo{font-size:20px} header h1{font-size:15px} header .sub{display:none}
+  .bnav{display:flex;flex-direction:column;justify-content:space-around;align-items:center;position:fixed;left:0;top:0;bottom:0;width:calc(76px + env(safe-area-inset-left));padding:6px 2px 6px env(safe-area-inset-left);z-index:60;background:var(--panel);border-right:1px solid var(--line);box-shadow:4px 0 14px rgba(0,0,0,.18)}
+  .bnav button{background:none;border:none;color:var(--muted);font-size:10.5px;font-weight:700;padding:4px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;width:100%}
+  .bnav button .i{font-size:21px;line-height:1}
+  .bnav button.on{color:var(--accent)}
+  .bnav .plus .i{width:50px;height:50px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+  .wrap{padding:8px 10px}
+  .pmodal{padding:6px}
+  .pmodal .pbox{max-width:96vw}
+  .toast{bottom:16px}
+}
+/* ---- ΟΡΙΖΟΝΤΙΑ / ΦΑΡΔΙΕΣ ΟΘΟΝΕΣ: αξιοποίηση του πλάτους με 2 στήλες ---- */
+@media (orientation:landscape) and (min-width:700px){
+  .grid{grid-template-columns:minmax(300px,380px) 1fr!important}
+  .grid2{grid-template-columns:1fr 1fr!important}
+  .tgrid{display:grid;grid-template-columns:1.35fr 1fr;gap:12px;align-items:start}
+  .kpi{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}
+  .pmodal .pbox{max-width:min(1000px,96vw)}
+  .pmodal .pgrid{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .vidgrid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+}
+@media (min-width:1300px){ .wrap{max-width:1600px} .enc-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))} }
+/* βίντεο: να χωράει πάντα στο ύψος της οθόνης */
+.ytbox iframe,.ytph{max-height:78vh;width:min(100%,calc(78vh*16/9));margin-left:auto;margin-right:auto}
+/* κουμπί πλήρους οθόνης */
+:fullscreen body{overscroll-behavior:none}
 .qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 .qbtn{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;font-weight:700;font-size:13px;color:var(--ink);cursor:pointer;min-height:84px;justify-content:center;text-align:center}
 .qbtn .i{font-size:30px;line-height:1}
@@ -127,6 +158,21 @@ function applyText(){ const v=ST.text||0; document.documentElement.classList.tog
 const tb=document.createElement('button'); tb.id='textBtn'; tb.className='status'; tb.style.cssText='cursor:pointer;border:none;font-weight:800'; tb.title='Μέγεθος γραμμάτων & αντίθεση (για χρήση έξω στον ήλιο)';
 $('themeBtn').before(tb); tb.onclick=()=>{ ST.text=((ST.text||0)+1)%3; save(); applyText(); toast(['Κανονικά γράμματα','🔠 Μεγάλα γράμματα','🔠 Μεγάλα γράμματα + ◐ υψηλή αντίθεση'][ST.text]); };
 applyText();
+
+/* ---------------- Πλήρης οθόνη & αλλαγή προσανατολισμού ---------------- */
+const fsEl=document.documentElement, canFs=!!(fsEl.requestFullscreen||fsEl.webkitRequestFullscreen);
+if(canFs){ const fb=document.createElement('button'); fb.id='fsBtn'; fb.className='status'; fb.style.cssText='cursor:pointer;border:none;font-weight:800'; fb.title='Πλήρης οθόνη';
+  const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+  const upd=()=>{ fb.textContent=isFs()?'🗗':'⛶'; fb.title=isFs()?'Έξοδος από πλήρη οθόνη':'Πλήρης οθόνη'; };
+  fb.onclick=async()=>{ try{ if(isFs()) await (document.exitFullscreen||document.webkitExitFullscreen).call(document);
+    else { await (fsEl.requestFullscreen||fsEl.webkitRequestFullscreen).call(fsEl,{navigationUI:'hide'}); } }catch(e){ toast('Η πλήρης οθόνη δεν υποστηρίζεται εδώ'); } };
+  document.addEventListener('fullscreenchange',upd); document.addEventListener('webkitfullscreenchange',upd); upd();
+  $('themeBtn').before(fb); }
+let rsT=null;
+function onReshape(){ clearTimeout(rsT); rsT=setTimeout(()=>{ try{ if(typeof map!=='undefined'&&map&&map.invalidateSize) map.invalidateSize(); }catch(e){}
+  const k=activeTabKey(); if(k==='stats') renderStats(); updBnav(k); },250); }
+window.addEventListener('resize',onReshape); window.addEventListener('orientationchange',onReshape);
+if(screen.orientation&&screen.orientation.addEventListener) screen.orientation.addEventListener('change',onReshape);
 
 /* ---------------- 3. γρήγορη καταγραφή ---------------- */
 const QA=[
@@ -282,17 +328,17 @@ function renderToday(){
       <div class="box"><div class="v">${birthsUpcoming().filter(o=>o.dd<=30).length}</div><div class="l">Τοκετοί ≤30 ημ.</div></div>
       <div class="box"><div class="v" style="color:${inc-cost>=0?'var(--ok)':'var(--bad)'}">${inc-cost>=0?'+':''}${fmt(inc-cost,0)} €</div><div class="l">Καθαρό μήνα</div></div>
     </div></div>
-  <div class="card"><h2>📋 Τι έχω να κάνω σήμερα <span class="r"><span class="small">${TASKS.length?TASKS.length+' εργασίες':''}</span></span></h2>
+  <div class="tgrid"><div><div class="card"><h2>📋 Τι έχω να κάνω σήμερα <span class="r"><span class="small">${TASKS.length?TASKS.length+' εργασίες':''}</span></span></h2>
     <div id="taskList">${TASKS.length?TASKS.map((o,i)=>`<div class="task ${o.info?'info':'p'+o.p}">
       ${o.done?`<button class="tick" data-done="${i}" title="Έγινε">✓</button>`:`<span style="font-size:26px;width:40px;text-align:center">${o.i}</span>`}
       <div class="tb"><div class="tt">${o.done?o.i+' ':''}${esc(o.t)}</div><div class="td">${esc(o.d)}</div>
       <div class="ta">${o.action?`<button class="btn mini" data-act="${i}">${o.action[0]}</button>`:''}${o.vids&&o.vids.length?vidBtn(o.vids,o.title):''}${o.tools?toolChips(o.tools):''}
       ${o.info?'':`<button class="btn sec mini" data-snz="${i}">⏰ Αύριο</button>`}</div></div></div>`).join(''):'<div class="empty">🎉 Όλα εντάξει για σήμερα! Δεν υπάρχει κάτι επείγον.<br><span class="small">Πάτα ➕ για να καταγράψεις γάλα, γέννες, φάρμακα…</span></div>'}</div>
-    <div class="btnrow"><button class="btn sec mini" onclick="ktGo('dash')">🧭 Όλες οι συστάσεις</button><button class="btn sec mini" onclick="ktGo('program')">🗓️ Πρόγραμμα ΤΝ</button></div></div>
-  <div class="card"><h2>➕ Γρήγορη καταγραφή</h2><div class="qgrid">${QA.map(a=>`<button class="qbtn" data-qq="${a.k}"><span class="i">${a.i}</span>${a.t}</button>`).join('')}</div></div>
+    <div class="btnrow"><button class="btn sec mini" onclick="ktGo('dash')">🧭 Όλες οι συστάσεις</button><button class="btn sec mini" onclick="ktGo('program')">🗓️ Πρόγραμμα ΤΝ</button></div></div></div>
+  <div><div class="card"><h2>➕ Γρήγορη καταγραφή</h2><div class="qgrid">${QA.map(a=>`<button class="qbtn" data-qq="${a.k}"><span class="i">${a.i}</span>${a.t}</button>`).join('')}</div></div>
   <div class="card"><h2>🔔 Υπενθυμίσεις</h2>
     <div class="small">Οι ειδοποιήσεις εμφανίζονται όταν η εφαρμογή είναι ανοιχτή ή μόλις την ανοίξεις. Για <b>σίγουρες</b> υπενθυμίσεις, πρόσθεσε τις επόμενες γέννες & εργασίες στο ημερολόγιο του κινητού σου.</div>
-    <div class="btnrow"><button class="btn sec" id="tNotif">${ST.notif&&window.Notification&&Notification.permission==='granted'?'🔔 Ειδοποιήσεις: ενεργές':'🔔 Ενεργοποίηση ειδοποιήσεων'}</button><button class="btn sec" id="tIcs">📅 Στο ημερολόγιο του κινητού (.ics)</button></div></div>`;
+    <div class="btnrow"><button class="btn sec" id="tNotif">${ST.notif&&window.Notification&&Notification.permission==='granted'?'🔔 Ειδοποιήσεις: ενεργές':'🔔 Ενεργοποίηση ειδοποιήσεων'}</button><button class="btn sec" id="tIcs">📅 Στο ημερολόγιο του κινητού (.ics)</button></div></div></div></div>`;
   p.querySelectorAll('[data-done]').forEach(b=>b.onclick=()=>TASKS[+b.dataset.done].done());
   p.querySelectorAll('[data-act]').forEach(b=>b.onclick=()=>TASKS[+b.dataset.act].action[1]());
   p.querySelectorAll('[data-snz]').forEach(b=>b.onclick=()=>{ const o=TASKS[+b.dataset.snz]; ST.snooze[o.k]=addDays(todayISO(),1); save(); renderToday(); toast('⏰ Θα το ξαναδείς αύριο',()=>{delete ST.snooze[o.k]; save(); renderToday();}); });
